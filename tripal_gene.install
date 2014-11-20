@@ -65,7 +65,8 @@ function tripal_gene_add_mview(){
   //Materialized view addition
   
   $sql_query="select gene1.*, feature.name as coordinates, familyprop.value as gene_family, noteprop.value as description from
-    (select  
+    (select 
+       nf.nid as nid, 
        F.feature_id as gene_id,
        O.organism_id,             
        Floc.srcfeature_id,
@@ -78,7 +79,9 @@ function tripal_gene_add_mview(){
        featureloc Floc,
        organism O,
        cvterm CVT,
+       chado_feature nf,
        cv CV where
+       F.feature_id=nf.feature_id and
        F.organism_id=O.organism_id and
        F.feature_id=Floc.feature_id and
        F.type_id=CVT.cvterm_id and
@@ -98,6 +101,10 @@ function tripal_gene_add_mview(){
      $schema = array (
     'table' => 'gene',
      'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'not null' => FASLE,
+      ),
       'gene_id' => array(
         'type' => 'int',
         'not null' => FASLE,
@@ -179,7 +186,32 @@ function tripal_gene_intergrate_view(){
     'priority' => '-1',
     'base_table' => '1',
     'fields' => array (
-      'gene_id' => array (
+      'nid' => array (
+        'name' => 'nid',
+        'title' => 'nid',
+        'description' => 'Node ID',
+        'type' => 'int',
+        'handlers' => array (
+          'filter' => array (
+            'name' => 'views_handler_filter_numeric',
+          ),
+          'field' => array (
+            'name' => 'views_handler_field_numeric',
+          ),
+          'sort' => array (
+            'name' => 'views_handler_sort',
+          ),
+          'argument' => array (
+            'name' => 'views_handler_argument_numeric',
+          ),
+          'relationship' => array (
+            'name' => 'views_handler_relationship',
+          ),
+        ),
+        'joins' => array (
+        ),
+      ),     
+        'gene_id' => array (
         'name' => 'gene_id',
         'title' => 'gene_id',
         'description' => 'Gene ID',
@@ -203,7 +235,7 @@ function tripal_gene_intergrate_view(){
         ),
         'joins' => array (
         ),
-      ),     
+      ),
        'organism_id' => array (
         'name' => 'organism_id',
         'title' => 'organism_id',
@@ -498,42 +530,6 @@ function tripal_gene_intergrate_view(){
 }
 
 
-/**
- * Implementation of hook_schema().
- *
- * @ingroup tripal_search_gene
- */
-function tripal_gene_schema() {
- $schema['chado_gene'] = array(
-      'fields' => array(
-         'vid' => array(
-            'type' => 'int',
-            'unsigned' => TRUE,
-            'not null' => TRUE,
-            'default' => 0
-          ),
-         'nid' => array(
-            'type' => 'int',
-            'unsigned' => TRUE,
-            'not null' => TRUE,
-            'default' => 0
-          ),
-         'gene_id' => array(
-            'type' => 'int',
-            'not null' => TRUE
-          )
-      ),
-      'indexes' => array(
-         'gene_id' => array('gene_id')
-      ),
-      'unique keys' => array(
-         'nid_vid' => array('nid', 'vid'),
-         'vid' => array('vid')
-      ),
-      'primary key' => array('nid'),
-  );
-  return $schema;
-}
 
 
 

@@ -69,36 +69,6 @@ function tripal_gene_menu() {
     'weight' => 10
   );
 
-  $items['admin/tripal/chado/tripal_gene/configuration'] = array(
-    'title' => 'Settings',
-    'description' => 'Manage integration of Chado organisms including associated features',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_gene_admin'),
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 5
-  );
-
-  $items['admin/tripal/chado/tripal_gene/sync'] = array(
-    'title' => ' Sync',
-    'description' => 'Create pages on this site for genes stored in Chado',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('chado_node_sync_form', 'tripal_gene', 'chado_gene'),
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2
-  );
-  $items['admin/tripal/chado/tripal_gene/chado_gene_toc'] = array(
-    'title' => ' TOC',
-    'description' => 'Manage the table of contents for gene nodes.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_core_content_type_toc_form', 'chado_gene'),
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_LOCAL_TASK,
-    'file' =>  'includes/tripal_core.toc.inc',
-    'file path' => drupal_get_path('module', 'tripal_core'),
-    'weight' => 3
-  );
 
   $items['admin/tripal/chado/tripal_gene/views/enable'] = array(
     'title' => 'Enable Gene Administrative View',
@@ -176,23 +146,13 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
       'base hook' => 'node',
       'path' => "$core_path/theme/templates",
     ),
-    'tripal_gene_base' => array(
+    'tripal_gene_description' => array(
       'variables' => array('node' => NULL),
-      'template' => 'tripal_gene_base',
-      'path' => "$path/theme/templates",
-    ),
-    'tripal_gene_properties' => array(
-      'variables' => array('node' => NULL),
-      'template' => 'tripal_gene_properties',
-      'path' => "$path/theme/templates",
-    ),
-    'tripal_gene_references' => array(
-      'variables' => array('node' => NULL),
-      'template' => 'tripal_gene_references',
+      'template' => 'tripal_gene_description',
       'path' => "$path/theme/templates",
     ),
   );
-  
+ 
   return $items;
 }
 
