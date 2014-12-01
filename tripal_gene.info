@@ -9,4 +9,8 @@ configure = admin/tripal/chado/tripal_gene
 dependencies[] = tripal_core
 dependencies[] = tripal_views
 dependencies[] = tripal_cv
+dependencies[] = views
+files[]=views/tripal_gene.views.inc
+files[]=views/tripal_gene_views_handler_field_actions.inc
+
 version = "7.x-2.0-rc1"

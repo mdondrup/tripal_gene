@@ -1,43 +1,9 @@
 <?php
 
-/**
- * Implementation of hook_permissions()
- * 
- * Set the permission types that this module uses. Essentially we
- * want permissions that protect creation, editing and deleting of
- * chado data objects
- * @ingroup tripal_gene
- *
- */
-
-require_once 'includes/tripal_gene.admin.inc';
+#require_once 'includes/tripal_gene.admin.inc';
 require_once 'includes/tripal_gene.chado_node.inc';
 //require_once 'theme/tripal_gene.theme.inc';
 
-function tripal_gene_permission() {
-  return array(
-    'access chado_gene content' => array(
-      'title' => t('View GENES'),
-      'description' => t('Allow users to view gene pages.'),
-    ),
-    'create chado_gene content' => array(
-      'title' => t('Create GENE'),
-      'description' => t('Allow users to create new gene pages.'),
-    ),
-    'delete chado_gene content' => array(
-      'title' => t('Delete GENE'),
-      'description' => t('Allow users to delete gene pages.'),
-    ),
-    'edit chado_gene content' => array(
-      'title' => t('Edit GENE'),
-      'description' => t('Allow users to edit gene pages.'),
-    ),
-    'administer tripal gene' => array(
-      'title' => t('Administer GENE'),
-      'description' => t('Allow users to administer all genes.'),
-    ),
-  );
-}
 
 
 /**
@@ -48,37 +14,41 @@ function tripal_gene_permission() {
  *
  * @ingroup tripal_gene
  */
-function tripal_gene_menu() {
-  $items = array();
-  // the administative settings menu
-  $items['admin/tripal/chado/tripal_gene'] = array(
-    'title' => 'Gene Search',
-    'description' => 'Gene search allows retrieval of gene information.',
-    'page callback' => 'tripal_gene_admin_gene_view',
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-
-  $items['admin/tripal/chado/tripal_gene/help'] = array(
-    'title' => 'Help',
-    'description' => "A description of the Tripal gene_search module including a short description of it's usage.",
-    'page callback' => 'theme',
-    'page arguments' => array('tripal_gene_help'),
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 10
-  );
 
 
-  $items['admin/tripal/chado/tripal_gene/views/enable'] = array(
-    'title' => 'Enable Gene Administrative View',
-    'page callback' => 'tripal_enable_view',
-    'page arguments' => array('tripal_gene_admin_gene', 'admin/tripal/chado/tripal_gene'),
-    'access arguments' => array('administer tripal gene'),
+function tripal_gene_menu(){
+    $items['basket/add/%'] = array(
+    'page callback' => 'lightshop_add2basket',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'access arguments' => array('use basket'),
     'type' => MENU_CALLBACK,
-  );  
+    'file' => 'lightshop.pages.inc',
+  );
+     $items['basket'] = array(
+    'title' => 'Your Basket',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lightshop_basket_form'),
+    'access callback' => TRUE,
+    'access arguments' => array('use basket'),
+    'type' => MENU_CALLBACK,
+    'file' => 'lightshop.pages.inc',
+  );
+
+   $items['basket/clear'] = array(
+   'page callback' => 'drupal_get_form',
+   'page arguments' => array('_lightshop_clear_confirm'),
+   'access callback' => TRUE,
+   'type' => MENU_CALLBACK,
+   'file' => 'lightshop.pages.inc',
+  );
+
   return $items;
+
+
 }
+
+
 
 /**
  * Implements hook_views_api().
@@ -90,10 +60,10 @@ function tripal_gene_menu() {
  * @ingroup tripal_organism
  */
 function tripal_gene_views_api() {
-  return array(
-    'api' => 3.0,
-  );
-}
+      return array( 'api' => '3.0',
+      'path' => drupal_get_path('module', 'tripal_gene'). '/views', );
+ }
+
 
 /**
  * Implementation of hook_form_alter().
@@ -114,18 +84,6 @@ function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-
-/**
- * Implements hook_help().
- * Adds a help page to the module list
- *
- * @ingroup tripal_organism
- */
-function tripal_gene_help ($path, $arg) {
-  if ($path == 'admin/help#tripal_gene') {
-    return theme('tripal_gene_help', array());
-  }
-}
 
 /**
  *  Implements hook_theme().
@@ -154,5 +112,131 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
   );
  
   return $items;
+}
+
+
+
+
+function add2basket_link($val) {
+  $build = array();
+  //debug($build);
+  $nid=$val->nid;
+  $name=$val->gene_name;
+  $pass=$nid.'-'.$name;
+  if (_in_basket($nid)) {
+    $build['add2basket_link'] = array(
+      '#markup' => '<span class="add2basket-link">' . t('Added') . '</span>',
+    );
+  }
+  else {
+    $build['add2basket_link'] = array(
+      '#type' => 'link',
+      '#title' => t('Bucket'),
+      '#href' => 'basket/add/'.$pass. '/nojs/',
+      '#attributes' => array(
+        'rel' => 'nofollow',
+        'class' => array('add2basket-link'),
+      ),
+      '#options' => array(
+        'query' => drupal_get_destination(),
+      ),
+      '#ajax' => array(
+        'wrapper' => 'add2basket-link-' . $nid,
+      ),
+    );
+  }
+  $build['add2basket_link']['#prefix'] = '<div id="add2basket-link-' . $nid . '" class="add2basket-link-container">';
+  $build['add2basket_link']['#suffix'] = '</div>';
+  $build['add2basket_link']['#attached'] = array(
+    'css' => array(
+      drupal_get_path('module', 'tripal_gene') . '/theme/lightshop.css',
+    ),
+    'js' => array(
+      drupal_get_path('module', 'tripal_gene') . '/theme/lightshop.js',
+        ),
+  );
+  //debug($build);
+  return render($build);
+}
+
+
+
+function _in_basket($nid) {
+  return isset($_SESSION['basket']['items']) ? array_key_exists($nid, $_SESSION['basket']['items']) : FALSE;
+}
+
+
+
+/**
+ * Implements hook_block_view().
+ */
+function lightshop_block_view() {
+  if (!user_access('use basket')) {
+    return;
+  }
+  $block = array();
+  $block['subject'] = t('Your Basket');
+  $block['content'] = lightshop_block_content();
+  return $block;
+}
+
+
+
+/**
+ * Basket block content.
+ */
+function lightshop_block_content() {
+  $content[] = array(
+    '#theme' => 'lightshop_block_display',
+    '#prefix' => '<div  id="lightshop-ajax-block-content">',
+    '#suffix' => '</div>',
+  );
+  return $content;
+}
+
+function lightshop_menu_alter(&$items) {
+  $type = str_replace('_', '-', LIGHTSHOP_ORDER_NODETYPE);
+  $items['node/add/' . $type]['access callback'] = FALSE;
+}
+
+
+
+
+function lightshop_block_info() {
+  $block['basket'] = array(
+    'info' => t('Light Shop: Basket Content'),
+    'cache' => DRUPAL_NO_CACHE,
+    'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+    'pages' => "basket",
+  );
+  return $block;
+}
+
+/**
+ * Implements hook_ajax_render_alter().
+ */
+function lightshop_ajax_render_alter(&$commands) {
+  // Inject any new status messages into the content area.
+  $commands[] = ajax_command_prepend('#block-system-main',
+    '<div class="messages-ajax">' . theme('status_messages') . '</div>'
+  );
+}
+
+/**
+ * Implements template_preprocess_page().
+ */
+function lightshop_preprocess_page(&$vars) {
+  if (arg(0) == 'basket') {
+    $vars['title_prefix'][]['#markup'] = '<div id="lightshop-page-title">';
+    $vars['title_suffix'][]['#markup'] = '</div>';
+  }
+}
+
+function lightshop_check_empty_basket($form, $form_state) {
+  if (!isset($_SESSION['basket']['items'])
+    || empty($_SESSION['basket']['items'])
+  ) {
+    form_set_error('', t('Incorrect form'));
+  };
 }
 
