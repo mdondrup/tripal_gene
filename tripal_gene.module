@@ -115,7 +115,21 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
 }
 
 
-
+/**
+ * Implements hook_search_biological_data_views().
+ *
+ * Adds the described views to the "Search Data" Page created by Tripal Views
+ */
+function tripal_gene_search_biological_data_views() {
+  return array(
+    'gene_family' => array(
+      'machine_name' => 'gene_family',
+      'human_name' => 'Gene Family',
+      'description' => 'Gene pages with bucket',
+      'link' => 'gene'
+    ),
+  );
+}
 
 function add2basket_link($val) {
   $build = array();

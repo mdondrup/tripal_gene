@@ -94,9 +94,16 @@ function lightshop_basket_form($form, &$form_state) {
  
   $form['clear'] = array (
     '#type' => 'submit',
-   '#value' => t('Clear bucket?'),
+    '#value' => t('Clear bucket?'),
     '#name' => 'clear',
-    ); 
+    );
+  
+   $form['View'] = array (
+    '#type' => 'submit',
+    '#value' => t('Back to View'),
+    '#name' => 'view',
+    );
+  
   }
 return $form;
 }
@@ -111,6 +118,10 @@ function lightshop_basket_form_submit($form, &$form_state) {
     switch ($form_state['triggering_element']['#name']) {
     case 'clear':
       $form_state['redirect'] = 'basket/clear';
+      break;
+ 
+    case 'view':
+      $form_state['redirect'] = 'gene';
       break;
 
     case 'reset':
