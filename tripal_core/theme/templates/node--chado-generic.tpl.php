@@ -14,15 +14,7 @@ else {
 
       // Hide all but the first data pane 
       $(".tripal-data-pane").hide().filter(":first-child").show();
-  
-      // When a title in the table of contents is clicked, then 
-      // show the corresponding item in the details box 
-      $(".tripal_toc_list_item_link").click(function(){
-        var id = $(this).attr('id') + "-tripal-data-pane";
-        $(".tripal-data-pane").hide().filter("#"+ id).fadeIn('fast');
-        return false;
-      });
-  
+ 
       // If a ?pane= is specified in the URL then we want to show the
       // requested content pane. For previous version of Tripal,
       // ?block=, was used.  We support it here for backwards
@@ -39,9 +31,28 @@ else {
           pane = window.location.href.match(/[\?|\&]block=(.+)/)
         }
       }
+
       if(pane != null){
         $(".tripal-data-pane").hide().filter("#" + pane[1] + "-tripal-data-pane").show();
-      }
+      } 
+
+      // When a title in the table of contents is clicked, then 
+      // show the corresponding item in the details box 
+      $(".tripal_toc_list_item_link").click(function(){
+        var id = $(this).attr('id') + "-tripal-data-pane";
+        //$(".tripal-data-pane").hide().filter("#"+ id).fadeIn('fast');
+
+        if(pane != null){
+            window.location.href = window.location.href.replace("block=".concat(pane[1]), "pane=".concat(id))
+                                                       .replace("pane=".concat(pane[1]), "pane=".concat(id));
+        }  else{  
+          var add_pane = window.location.href.match(/\?/) ? "&" : "?";
+          window.location.href = window.location.href.concat(add_pane).concat("pane=").concat(id);    
+        }
+
+        return false;
+      });
+
       // Remove the 'active' class from the links section, as it doesn't
       // make sense for this layout
       $("a.active").removeClass('active');
