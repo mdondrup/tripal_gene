@@ -20,17 +20,18 @@ else {
       // ?block=, was used.  We support it here for backwards
       // compatibility
       var pane;
-      pane = window.location.href.match(/[\?|\&]pane=(.+?)[\&|\#]/)
+      pane = window.location.href.match(/[\?|\&]pane=(.+?)[\&|\#]/);
       if (pane == null) {
-        pane = window.location.href.match(/[\?|\&]pane=(.+)/)
+          pane = window.location.href.match(/[\?|\&]pane=(.+)/);
       }
       // if we don't have a pane then try the old style ?block=
       if (pane == null) {
-        pane = window.location.href.match(/[\?|\&]block=(.+?)[\&|\#]/)
+          pane = window.location.href.match(/[\?|\&]block=(.+?)[\&|\#]/);
         if (pane == null) {
-          pane = window.location.href.match(/[\?|\&]block=(.+)/)
+            pane = window.location.href.match(/[\?|\&]block=(.+)/);
         }
       }
+
 
       if(pane != null){
         $(".tripal-data-pane").hide().filter("#" + pane[1] + "-tripal-data-pane").show();
@@ -40,8 +41,6 @@ else {
       // show the corresponding item in the details box 
       $(".tripal_toc_list_item_link").click(function(){
         var id = $(this).attr('id') + "-tripal-data-pane";
-        //$(".tripal-data-pane").hide().filter("#"+ id).fadeIn('fast');
-
         if(pane != null){
             window.location.href = window.location.href.replace("block=".concat(pane[1]), "pane=".concat(id))
                                                        .replace("pane=".concat(pane[1]), "pane=".concat(id));
@@ -49,8 +48,9 @@ else {
           var add_pane = window.location.href.match(/\?/) ? "&" : "?";
           window.location.href = window.location.href.concat(add_pane).concat("pane=").concat(id);    
         }
+        //$(".tripal-data-pane").hide().filter("#"+ id).fadeIn('fast');
 
-        return false;
+        return true;
       });
 
       // Remove the 'active' class from the links section, as it doesn't
