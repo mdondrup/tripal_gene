@@ -90,8 +90,10 @@ function tripal_gene_menu() {
  * @ingroup tripal_organism
  */
 function tripal_gene_views_api() {
+  $path = drupal_get_path('module', 'tripal_gene');
   return array(
     'api' => 3.0,
+    'path' => $path . '/views',
   );
 }
 
