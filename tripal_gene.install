@@ -65,12 +65,13 @@ function tripal_gene_add_mview(){
   //Materialized view addition
   
   $sql_query="select gene1.*, feature.name as coordinates, familyprop.value as gene_family, noteprop.value as description from
-    (select 
-       nf.nid as nid, 
+    (select  
        F.feature_id as gene_id,
        O.organism_id,             
        Floc.srcfeature_id,
-       O.common_name,
+       O.abbreviation,
+       O.genus,
+       O.species,
        F.name,
        F.uniquename,
        Floc.fmax as stop,
@@ -79,9 +80,7 @@ function tripal_gene_add_mview(){
        featureloc Floc,
        organism O,
        cvterm CVT,
-       chado_feature nf,
        cv CV where
-       F.feature_id=nf.feature_id and
        F.organism_id=O.organism_id and
        F.feature_id=Floc.feature_id and
        F.type_id=CVT.cvterm_id and
@@ -93,73 +92,82 @@ function tripal_gene_add_mview(){
   feature.feature_id=gene1.srcfeature_id
   left join featureprop noteprop on
   noteprop.feature_id=gene1.gene_id and noteprop.type_id=(select cvterm_id from cvterm t, cv where t.name='Note' and t.cv_id=cv.cv_id and cv.name='feature_property')
-  left join featureprop familyprop on                                                                                                                                
-  familyprop.feature_id=gene1.gene_id and familyprop.type_id=(select cvterm_id from cvterm t, cv where t.name='gene family' and t.cv_id=cv.cv_id and cv.name='LIS_properties')";
+  left join featureprop familyprop on familyprop.feature_id=gene1.gene_id and familyprop.type_id=(select cvterm_id from cvterm t, cv where t.name='gene family' and t.cv_id=cv.cv_id and cv.name='LIS_properties')";
 
     //Table gene description
 
-     $schema = array (
-    'table' => 'gene',
-     'fields' => array(
-      'nid' => array(
-        'type' => 'int',
-        'not null' => FASLE,
-      ),
-      'gene_id' => array(
-        'type' => 'int',
-        'not null' => FASLE,
-      ),
-      'organism_id' => array(
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'srcfeature_id' => array(
-        'type' => 'int',
-        'not null' => FALSE,
-      ),
-      'common_name' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-      ),   
-      'name' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'uniquename' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'stop' => array(
-        'type' => 'int',
-        'not null' => TRUE, 
-      ),
-      'start' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-      ),
-      'strand' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-      ),
-      'coordinate' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'gene_family' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'description' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-   ),
-   'primary key' => array('gene_id'),
-   'indexes' => array(
-      'gene_indx0' => array('common_name'),
-      'gene_indx2' => array('name'),
-    ),
-  );
+	$schema = array (
+	  'table' => 'gene',
+	  'fields' => array (
+	    'gene_id' => array (
+	      'type' => 'int',
+	      'not null' => 'FASLE',
+	    ),
+	    'organism_id' => array (
+	      'type' => 'int',
+	      'not null' => false,
+	    ),
+	    'srcfeature_id' => array (
+	      'type' => 'int',
+	      'not null' => false,
+	    ),
+	    'common_name' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'genus' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'species' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'name' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'uniquename' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'stop' => array (
+	      'type' => 'int',
+	      'not null' => true,
+	    ),
+	    'start' => array (
+	      'type' => 'int',
+	      'not null' => true,
+	    ),
+	    'strand' => array (
+	      'type' => 'int',
+	      'not null' => true,
+	    ),
+	    'coordinate' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'gene_family' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	    'description' => array (
+	      'type' => 'text',
+	      'not null' => false,
+	    ),
+	  ),
+	  'primary key' => array (
+	    0 => 'gene_id',
+	  ),
+	  'indexes' => array (
+	    'gene_indx0' => array (
+	      0 => 'common_name',
+	    ),
+	    'gene_indx2' => array (
+	      0 => 'name',
+	    ),
+	  ),
+	);
 
    // add a comment to make sure this view makes sense to the site administator
   $comment = t('This view is used to provide a table for searching Gene Pages.');
