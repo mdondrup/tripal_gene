@@ -3,10 +3,15 @@ description = Supports the gene_search table of Chado by providing pages for vie
 core = 7.x
 biomaterial = tripal_gene
 package = Tripal
-version = 7.x-2.0-rc1
 configure = admin/tripal/chado/tripal_gene
 
+version = 7.x-2.0-rc1
 dependencies[] = tripal_core
 dependencies[] = tripal_views
+dependencies[] = tripal_organism
 dependencies[] = tripal_cv
-version = "7.x-2.0-rc1"
+dependencies[] = tripal_db
+
+files[]=views/tripal_gene_views_handler_field_actions.inc
+files[]=views/tripal_gene.views_default.inc
+files[]=views/tripal_gene.views.inc

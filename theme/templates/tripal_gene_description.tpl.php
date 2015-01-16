@@ -1,4 +1,5 @@
 <?php
+drupal_add_css( $my_path . '/theme/css/basket.css');
 
 $gene_id = $variables['node']->feature->feature_id;
 
