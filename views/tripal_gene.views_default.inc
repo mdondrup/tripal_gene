@@ -164,6 +164,16 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['gene_family']['field'] = 'gene_family';
 	$handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
 	$handler->display->display_options['fields']['gene_family']['alter']['path'] = 'chado_phylotree/[gene_family]';
+
+        /* Field: gene: Bucket */
+        $handler->display->display_options['fields']['actions']['id'] = 'actions';
+        $handler->display->display_options['fields']['actions']['table'] = 'gene';
+	$handler->display->display_options['fields']['actions']['field'] = 'actions';
+	$handler->display->display_options['fields']['actions']['label'] = 'Basket';
+	$handler->display->display_options['fields']['actions']['element_class'] = 'fix-width-50';
+	$handler->display->display_options['fields']['actions']['element_label_colon'] = FALSE;
+	$handler->display->display_options['fields']['actions']['empty_zero'] = TRUE;
+			    
 	/* Field: gene: description */
 	$handler->display->display_options['fields']['description']['id'] = 'description';
 	$handler->display->display_options['fields']['description']['table'] = 'gene';

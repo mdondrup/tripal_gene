@@ -66,6 +66,7 @@ function tripal_gene_add_mview(){
   
   $sql_query="select gene1.*, feature.name as coordinates, familyprop.value as gene_family, noteprop.value as description from
     (select  
+       nf.nid as nid,
        F.feature_id as gene_id,
        O.organism_id,             
        Floc.srcfeature_id,
@@ -80,7 +81,9 @@ function tripal_gene_add_mview(){
        featureloc Floc,
        organism O,
        cvterm CVT,
+       chado_feature nf,
        cv CV where
+       F.feature_id=nf.feature_id and
        F.organism_id=O.organism_id and
        F.feature_id=Floc.feature_id and
        F.type_id=CVT.cvterm_id and
@@ -99,6 +102,10 @@ function tripal_gene_add_mview(){
 	$schema = array (
 	  'table' => 'gene',
 	  'fields' => array (
+         'nid' => array(
+          'type' => 'int',
+          'not null' => FASLE,
+         ),
 	    'gene_id' => array (
 	      'type' => 'int',
 	      'not null' => 'FASLE',
