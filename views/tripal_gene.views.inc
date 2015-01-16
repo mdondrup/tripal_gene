@@ -71,7 +71,7 @@ function tripal_gene_views_data(){
         ),
     );
 
-    $data['gene']['table']['common_name'] = array (
+    $data['gene']['table']['abbreviation'] = array (
         'title' => t('Common Name'),
         'help' => t('Organism name'),
         'field' => array( 

@@ -118,7 +118,7 @@ function tripal_gene_add_mview(){
 	      'type' => 'int',
 	      'not null' => false,
 	    ),
-	    'common_name' => array (
+	    'abbreviation' => array (
 	      'type' => 'text',
 	      'not null' => false,
 	    ),
@@ -168,7 +168,7 @@ function tripal_gene_add_mview(){
 	  ),
 	  'indexes' => array (
 	    'gene_indx0' => array (
-	      0 => 'common_name',
+	      0 => 'abbreviation',
 	    ),
 	    'gene_indx2' => array (
 	      0 => 'name',
@@ -303,8 +303,8 @@ function tripal_gene_intergrate_view(){
         ),
       ),
 
-      'common_name' => array (
-        'name' => 'common_name',
+      'abbreviation' => array (
+        'name' => 'abbreviation',
         'title' => 'Common Name',
         'description' => 'Common name',
         'type' => 'text',

@@ -58,7 +58,7 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['style_plugin'] = 'table';
 	$handler->display->display_options['style_options']['columns'] = array(
 	  'name' => 'name',
-	  'common_name' => 'common_name',
+	  'abbreviation' => 'abbreviation',
 	  'coordinate' => 'coordinate',
 	  'start' => 'start',
 	  'stop' => 'stop',
@@ -74,7 +74,7 @@ function tripal_gene_defaultvalue_user_genes() {
 	    'separator' => '',
 	    'empty_column' => 0,
 	  ),
-	  'common_name' => array(
+	  'abbreviation' => array(
 	    'sortable' => 1,
 	    'default_sort_order' => 'asc',
 	    'align' => '',
@@ -139,12 +139,12 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['name']['alter']['make_link'] = TRUE;
 	$handler->display->display_options['fields']['name']['alter']['path'] = 'feature/[genus]/[species]/gene/[uniquename]';
 	/* Field: gene: Common Name */
-	$handler->display->display_options['fields']['common_name']['id'] = 'common_name';
-	$handler->display->display_options['fields']['common_name']['table'] = 'gene';
-	$handler->display->display_options['fields']['common_name']['field'] = 'common_name';
-	$handler->display->display_options['fields']['common_name']['label'] = 'Species';
-	$handler->display->display_options['fields']['common_name']['alter']['make_link'] = TRUE;
-	$handler->display->display_options['fields']['common_name']['alter']['path'] = 'organism/[genus]/[species]';
+	$handler->display->display_options['fields']['abbreviation']['id'] = 'abbreviation';
+	$handler->display->display_options['fields']['abbreviation']['table'] = 'gene';
+	$handler->display->display_options['fields']['abbreviation']['field'] = 'abbreviation';
+	$handler->display->display_options['fields']['abbreviation']['label'] = 'Species';
+	$handler->display->display_options['fields']['abbreviation']['alter']['make_link'] = TRUE;
+	$handler->display->display_options['fields']['abbreviation']['alter']['path'] = 'organism/[genus]/[species]';
 	/* Field: gene: Coordinate */
 	$handler->display->display_options['fields']['coordinate']['id'] = 'coordinate';
 	$handler->display->display_options['fields']['coordinate']['table'] = 'gene';
