@@ -117,6 +117,20 @@ function tripal_gene_defaultvalue_user_genes() {
 	    'empty_column' => 0,
 	  ),
 	);
+    /* Footer: Global: Result summary */
+    $handler->display->display_options['footer']['result']['id'] = 'result';
+    $handler->display->display_options['footer']['result']['table'] = 'views';
+    $handler->display->display_options['footer']['result']['field'] = 'result';
+    $handler->display->display_options['footer']['result']['label'] = 'results';
+    $handler->display->display_options['footer']['result']['content'] = 'Displaying @start - @end of @total genes';
+    /* No results behavior: Global: Text area */
+    $handler->display->display_options['empty']['area']['id'] = 'area';
+    $handler->display->display_options['empty']['area']['table'] = 'views';
+    $handler->display->display_options['empty']['area']['field'] = 'area';
+    $handler->display->display_options['empty']['area']['label'] = 'No results';
+    $handler->display->display_options['empty']['area']['empty'] = TRUE;
+    $handler->display->display_options['empty']['area']['content'] = 'No results found. ';
+    $handler->display->display_options['empty']['area']['format'] = '1';
 	/* Field: gene: Uniquename */
 	$handler->display->display_options['fields']['uniquename']['id'] = 'uniquename';
 	$handler->display->display_options['fields']['uniquename']['table'] = 'gene';

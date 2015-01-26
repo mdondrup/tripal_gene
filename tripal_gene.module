@@ -97,6 +97,15 @@ function tripal_gene_views_api() {
   );
 }
 
+
+function tripal_gene_add_all_handler($form, &$form_state) {
+  //do smth
+    //print_r($form_state);
+    print_r($form['actions']['submit']['#submit']);
+    return;
+}
+
+
 /**
  * Implementation of hook_form_alter().
  *
@@ -108,12 +117,22 @@ function tripal_gene_views_api() {
  */
 function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
   // turn of preview button for insert/updates
-  if ($form_id == "chado_gene_node_form") {
-    $form['actions']['preview']['#access'] = FALSE;
-
-    //remove the body field
-    unset($form['body']);
-  }
+  switch ($form_id) {
+    case 'chado_gene_node_form':
+      $form['actions']['preview']['#access'] = FALSE;
+      //remove the body field
+      unset($form['body']);
+      break;
+    case 'views_exposed_form':
+      if ($form['#id'] == 'views-exposed-form-gene-page') {
+          // Add a button
+          $form['submit_basket']['#type'] = 'submit';
+          $form['submit_basket']['#value'] = t('Add all genes to Basket');
+          $form['submit_basket']['#submit'] = array('tripal_gene_add_all_handler', 'views_exposed_form_submit');
+          $form['submit_basket']['#executes_submit_callback'] = 1;
+      }
+      break;
+  } //switch
 }
 
 
