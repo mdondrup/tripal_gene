@@ -235,7 +235,7 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['filters']['name']['exposed'] = TRUE;
 	$handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
 	$handler->display->display_options['filters']['name']['expose']['label'] = 'gene name';
-	$handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. “contains: Glyma.15G005900")';
+	$handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. "Contains: Glyma.15G005900", "Contains any word: medtr.Medtr0001s0010 medtr.Medtr0001s0070")';
 	$handler->display->display_options['filters']['name']['expose']['use_operator'] = TRUE;
 	$handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
 	$handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
@@ -247,7 +247,7 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['filters']['name']['max_length'] = '40';
 
 	/* Display: Page */
-	$handler = $view->new_display('page', 'Page', 'page');
+	$handler = $view->new_display('page', 'Gene', 'page');
 	$handler->display->display_options['path'] = 'search/gene';
 
 
