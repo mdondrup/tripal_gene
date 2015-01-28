@@ -97,12 +97,10 @@ function tripal_gene_views_api() {
   );
 }
 
-
 function tripal_gene_add_all_handler($form, &$form_state) {
-  //do smth
-    //print_r($form_state);
-    print_r($form['actions']['submit']['#submit']);
-    return;
+  $GLOBALS['all'] = TRUE;
+  //drupal_set_message(print_r($results , 1));
+  return;
 }
 
 
