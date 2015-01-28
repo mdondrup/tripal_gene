@@ -31,7 +31,7 @@ SQL;
           }      
       }
 
-      return lightshop_add2basket_link($result->nid);
+      return lightshop_add2basket_link($result->nid, "gene");
    }
 
     function query() {

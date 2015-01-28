@@ -12,17 +12,11 @@ function tripal_gene_views_data_alter(&$data) {
     );
 }
 
-/*
-function tripal_gene_views_pre_execute(&$view) {
-    $view->pager['items_per_page'] = 0;
-    $view->execute();
-}
-*/
-
 function tripal_gene_views_post_execute(&$view) {
     if($GLOBALS['all']) {
         module_load_include('inc', 'lightshop', 'lightshop.pages');
         $results = $view->result;
+
         foreach ($results as $res) {
             $sql =<<<SQL
             select g.*,
