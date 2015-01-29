@@ -123,7 +123,7 @@ SQL;
                 lightshop_add2basket($node);
             }
   }
-  //drupal_set_message(print_r($view->result, 1));
+  //drupal_set_message(print_r($results, 1));
   return;
 }
 
