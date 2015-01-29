@@ -19,7 +19,9 @@ else {
       // requested content pane. For previous version of Tripal,
       // ?block=, was used.  We support it here for backwards
       // compatibility
+
       var pane;
+
       pane = window.location.href.match(/[\?|\&]pane=(.+?)[\&|\#]/);
       if (pane == null) {
           pane = window.location.href.match(/[\?|\&]pane=(.+)/);
@@ -32,26 +34,30 @@ else {
         }
       }
 
-
-      if(pane != null){
-        $(".tripal-data-pane").hide().filter("#" + pane[1] + "-tripal-data-pane").show();
-      } 
-
       // When a title in the table of contents is clicked, then 
       // show the corresponding item in the details box 
       $(".tripal_toc_list_item_link").click(function(){
         var id = $(this).attr('id') + "-tripal-data-pane";
-        if(pane != null){
-            window.location.href = window.location.href.replace("block=".concat(pane[1]), "pane=".concat(id))
-                                                       .replace("pane=".concat(pane[1]), "pane=".concat(id));
-        }  else{  
-          var add_pane = window.location.href.match(/\?/) ? "&" : "?";
-          window.location.href = window.location.href.concat(add_pane).concat("pane=").concat(id);    
-        }
-        //$(".tripal-data-pane").hide().filter("#"+ id).fadeIn('fast');
+        var pane_id = $(this).attr('id');        
 
-        return true;
+        // the click event occurs on a page that does have previously set pane value in the url:
+        if(pane != null){         
+            window.location.assign(window.location.href.replace("block=".concat(pane[1]), "pane=".concat(pane_id))
+            .replace("pane=".concat(pane[1]), "pane=".concat(pane_id)));
+            return false;
+        } // the click event occurs on a page that does NOT ave previously set pane value in the url:  
+        else{  
+          var add_pane = window.location.href.match(/\?/) ? "&" : "?";
+          window.location.assign(window.location.href.concat(add_pane).concat("pane=").concat(pane_id));         
+          return false;
+        }
       });
+
+
+      // this code gets executed when the page is accessed via .tripal_toc_list_item_link click event:      
+      if(pane != null){
+        $(".tripal-data-pane").hide().filter("#"+ pane[1] + "-tripal-data-pane").fadeIn('fast');
+      }
 
       // Remove the 'active' class from the links section, as it doesn't
       // make sense for this layout
