@@ -12,6 +12,6 @@ dependencies[] = tripal_organism
 dependencies[] = tripal_cv
 dependencies[] = tripal_db
 
+files[]=views/tripal_gene.views.inc
 files[]=views/tripal_gene_views_handler_field_actions.inc
 files[]=views/tripal_gene.views_default.inc
-files[]=views/tripal_gene.views.inc

@@ -98,8 +98,32 @@ function tripal_gene_views_api() {
 }
 
 function tripal_gene_add_all_handler($form, &$form_state) {
-  $GLOBALS['all'] = TRUE;
-  //drupal_set_message(print_r($results , 1));
+  module_load_include('inc', 'lightshop', 'lightshop.pages');
+
+  $view = views_get_view('gene');
+  //in order to get all the results of the view, set items per page to 0
+  $view->set_items_per_page(0);
+  $view->execute();
+  $results = $view->result;
+
+  foreach ($results as $res) {
+            $sql =<<<SQL
+                select g.*,
+                   chf.nid
+                from   chado.gene g,
+                   public.chado_feature chf
+            where  g.gene_id = chf.feature_id
+                   and g.name = :name
+SQL;
+            $args = array(':name' => $res->gene_name);
+            $gene = chado_query($sql, $args)->fetchObject();
+
+            if ($gene) {
+                $node = node_load($gene->nid);
+                lightshop_add2basket($node);
+            }
+  }
+  //drupal_set_message(print_r($view->result, 1));
   return;
 }
 
@@ -114,9 +138,11 @@ function tripal_gene_add_all_handler($form, &$form_state) {
  * @ingroup tripal_organism
  */
 function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
-  // turn of preview button for insert/updates
+
+  $form['#method'] = 'post';
   switch ($form_id) {
     case 'chado_gene_node_form':
+      // turn of preview button for insert/updates
       $form['actions']['preview']['#access'] = FALSE;
       //remove the body field
       unset($form['body']);
@@ -124,6 +150,7 @@ function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
     case 'views_exposed_form':
       if ($form['#id'] == 'views-exposed-form-gene-page') {
           // Add a button
+
           $form['submit_basket']['#type'] = 'submit';
           $form['submit_basket']['#value'] = t('Add all genes to Basket');
           $form['submit_basket']['#submit'] = array('tripal_gene_add_all_handler', 'views_exposed_form_submit');
