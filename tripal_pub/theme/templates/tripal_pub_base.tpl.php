@@ -12,9 +12,7 @@
  * 
  */
 
-//$pub = $variables['node']->pub;
-$pub = $variables['elements']['#node']->pub;
-echo "Node<pre>";var_dump($pub);echo "</pre>";
+$pub = $variables['node']->pub;
 
 // expand the title
 $pub = chado_expand_var($pub, 'field', 'pub.title');
