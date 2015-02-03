@@ -235,7 +235,7 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['filters']['name']['exposed'] = TRUE;
 	$handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
 	$handler->display->display_options['filters']['name']['expose']['label'] = 'gene name';
-	$handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. "Contains: Glyma.15G005900", "Contains any word: medtr.Medtr0001s0010 medtr.Medtr0001s0070")';
+	$handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. "Contains: Glyma.15G005900", "Contains any word: Medtr4g076850 Araip.5TB63 Aradu.58KSZ")';
 	$handler->display->display_options['filters']['name']['expose']['use_operator'] = TRUE;
 	$handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
 	$handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
