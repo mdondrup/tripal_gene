@@ -12,7 +12,6 @@
 
 require_once 'includes/tripal_gene.admin.inc';
 require_once 'includes/tripal_gene.chado_node.inc';
-//require_once 'theme/tripal_gene.theme.inc';
 
 function tripal_gene_permission() {
   return array(
@@ -196,6 +195,11 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
       'variables' => array('node' => NULL),
       'template' => 'tripal_gene_description',
       'path' => "$path/theme/templates",
+    ),
+    'tripal_gene_jbrowse' => array(
+        'variables' => array('node' => NULL),
+        'template' => 'tripal_gene_jbrowse',
+        'path' => "$path/theme/templates",
     ),
   );
  
