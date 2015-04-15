@@ -1,7 +1,9 @@
 <?php
 function file2arr($file) {
-    if (!is_file($file) || !is_readable($file)) return false;
-
+    if (!is_file($file) || !is_readable($file)) {
+      print "Alias file '$file' not found in ".getcwd() .". Please create alias file.</br>";
+      return false;
+    }
     $arr = [];
     $fp = fopen($file,"r");
     while (false != ($line = fgets($fp,4096))) {
