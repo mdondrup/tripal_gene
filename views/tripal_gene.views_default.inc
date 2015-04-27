@@ -182,6 +182,11 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['description']['id'] = 'description';
 	$handler->display->display_options['fields']['description']['table'] = 'gene';
 	$handler->display->display_options['fields']['description']['field'] = 'description';
+    /* Field: gene: Domains */
+    $handler->display->display_options['fields']['domains']['id'] = 'domains';
+    $handler->display->display_options['fields']['domains']['table'] = 'gene';
+    $handler->display->display_options['fields']['domains']['field'] = 'domains';
+    $handler->display->display_options['fields']['domains']['exclude'] = TRUE;
     /* Field: gene: Bucket */
     $handler->display->display_options['fields']['actions']['id'] = 'actions';
     $handler->display->display_options['fields']['actions']['table'] = 'gene';
@@ -190,61 +195,100 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['actions']['element_class'] = 'fix-width-50';
 	$handler->display->display_options['fields']['actions']['element_label_colon'] = FALSE;
 	$handler->display->display_options['fields']['actions']['empty_zero'] = TRUE;
-			    
-	/* Filter criterion: gene: description */
-	$handler->display->display_options['filters']['description']['id'] = 'description';
-	$handler->display->display_options['filters']['description']['table'] = 'gene';
-	$handler->display->display_options['filters']['description']['field'] = 'description';
-	$handler->display->display_options['filters']['description']['operator'] = 'word';
-	$handler->display->display_options['filters']['description']['exposed'] = TRUE;
-	$handler->display->display_options['filters']['description']['expose']['operator_id'] = 'description_op';
-	$handler->display->display_options['filters']['description']['expose']['label'] = 'description';
-	$handler->display->display_options['filters']['description']['expose']['description'] = '(e.g. “Contains any word: proteasome”)';
-	$handler->display->display_options['filters']['description']['expose']['use_operator'] = TRUE;
-	$handler->display->display_options['filters']['description']['expose']['operator'] = 'description_op';
-	$handler->display->display_options['filters']['description']['expose']['identifier'] = 'description';
-	$handler->display->display_options['filters']['description']['expose']['remember_roles'] = array(
-	  2 => '2',
-	  1 => 0,
-	  4 => 0,
-	);
-	$handler->display->display_options['filters']['description']['max_length'] = '40';
-	/* Filter criterion: gene: gene_family */
-	$handler->display->display_options['filters']['gene_family']['id'] = 'gene_family';
-	$handler->display->display_options['filters']['gene_family']['table'] = 'gene';
-	$handler->display->display_options['filters']['gene_family']['field'] = 'gene_family';
-	$handler->display->display_options['filters']['gene_family']['exposed'] = TRUE;
-	$handler->display->display_options['filters']['gene_family']['expose']['operator_id'] = 'gene_family_op';
-	$handler->display->display_options['filters']['gene_family']['expose']['label'] = 'gene family';
-	$handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. “is equal to: phytozome_10.54586494”)';
-	$handler->display->display_options['filters']['gene_family']['expose']['use_operator'] = TRUE;
-	$handler->display->display_options['filters']['gene_family']['expose']['operator'] = 'gene_family_op';
-	$handler->display->display_options['filters']['gene_family']['expose']['identifier'] = 'gene_family';
-	$handler->display->display_options['filters']['gene_family']['expose']['remember_roles'] = array(
-	  2 => '2',
-	  1 => 0,
-	  4 => 0,
-	);
-	$handler->display->display_options['filters']['gene_family']['max_length'] = '40';
-	/* Filter criterion: gene: Name */
-	$handler->display->display_options['filters']['name']['id'] = 'name';
-	$handler->display->display_options['filters']['name']['table'] = 'gene';
-	$handler->display->display_options['filters']['name']['field'] = 'name';
-	$handler->display->display_options['filters']['name']['operator'] = 'contains';
-	$handler->display->display_options['filters']['name']['exposed'] = TRUE;
-	$handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-	$handler->display->display_options['filters']['name']['expose']['label'] = 'gene name';
-	$handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. "Contains: Glyma.15G005900", "Contains any word: Medtr4g076850 Araip.5TB63 Aradu.58KSZ")';
-	$handler->display->display_options['filters']['name']['expose']['use_operator'] = TRUE;
-	$handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
-	$handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
-	$handler->display->display_options['filters']['name']['expose']['remember_roles'] = array(
-	  2 => '2',
-	  1 => 0,
-	  4 => 0,
-	);
-	$handler->display->display_options['filters']['name']['max_length'] = '40';
 
+    /* Filter criterion: gene: Common Name */
+    $handler->display->display_options['filters']['abbreviation']['id'] = 'abbreviation';
+    $handler->display->display_options['filters']['abbreviation']['table'] = 'gene';
+    $handler->display->display_options['filters']['abbreviation']['field'] = 'abbreviation';
+    $handler->display->display_options['filters']['abbreviation']['value'] = 'Ara. duranensis';
+    $handler->display->display_options['filters']['abbreviation']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['abbreviation']['expose']['operator_id'] = 'abbreviation_op';
+    $handler->display->display_options['filters']['abbreviation']['expose']['label'] = 'Species';
+    $handler->display->display_options['filters']['abbreviation']['expose']['operator'] = 'abbreviation_op';
+    $handler->display->display_options['filters']['abbreviation']['expose']['identifier'] = 'abbreviation';
+    $handler->display->display_options['filters']['abbreviation']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        4 => 0,
+    );
+    $handler->display->display_options['filters']['abbreviation']['values_form_type'] = 'select';
+    $handler->display->display_options['filters']['abbreviation']['max_length'] = '40';
+
+    /* Filter criterion: gene: Domains */
+    $handler->display->display_options['filters']['domains']['id'] = 'domains';
+    $handler->display->display_options['filters']['domains']['table'] = 'gene';
+    $handler->display->display_options['filters']['domains']['field'] = 'domains';
+    $handler->display->display_options['filters']['domains']['operator'] = 'contains';
+    $handler->display->display_options['filters']['domains']['group'] = 1;
+    $handler->display->display_options['filters']['domains']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['domains']['expose']['operator_id'] = 'domains_op';
+    $handler->display->display_options['filters']['domains']['expose']['label'] = 'Domains';
+    $handler->display->display_options['filters']['domains']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['domains']['expose']['operator'] = 'domains_op';
+    $handler->display->display_options['filters']['domains']['expose']['identifier'] = 'domains';
+    $handler->display->display_options['filters']['domains']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        4 => 0,
+    );
+    $handler->display->display_options['filters']['domains']['max_length'] = '40';
+    /* Filter criterion: gene: description */
+    $handler->display->display_options['filters']['description']['id'] = 'description';
+    $handler->display->display_options['filters']['description']['table'] = 'gene';
+    $handler->display->display_options['filters']['description']['field'] = 'description';
+    $handler->display->display_options['filters']['description']['operator'] = 'word';
+    $handler->display->display_options['filters']['description']['group'] = 1;
+    $handler->display->display_options['filters']['description']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['description']['expose']['operator_id'] = 'description_op';
+    $handler->display->display_options['filters']['description']['expose']['label'] = 'description';
+    $handler->display->display_options['filters']['description']['expose']['description'] = '(e.Contains any word: )';
+    $handler->display->display_options['filters']['description']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['description']['expose']['operator'] = 'description_op';
+    $handler->display->display_options['filters']['description']['expose']['identifier'] = 'description';
+    $handler->display->display_options['filters']['description']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        4 => 0,
+    );
+    $handler->display->display_options['filters']['description']['max_length'] = '40';
+    /* Filter criterion: gene: gene_family */
+    $handler->display->display_options['filters']['gene_family']['id'] = 'gene_family';
+    $handler->display->display_options['filters']['gene_family']['table'] = 'gene';
+    $handler->display->display_options['filters']['gene_family']['field'] = 'gene_family';
+    $handler->display->display_options['filters']['gene_family']['group'] = 1;
+    $handler->display->display_options['filters']['gene_family']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['gene_family']['expose']['operator_id'] = 'gene_family_op';
+    $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'gene family';
+    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.is equal to: phytozome_10.)';
+    $handler->display->display_options['filters']['gene_family']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['gene_family']['expose']['operator'] = 'gene_family_op';
+    $handler->display->display_options['filters']['gene_family']['expose']['identifier'] = 'gene_family';
+    $handler->display->display_options['filters']['gene_family']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        4 => 0,
+    );
+    $handler->display->display_options['filters']['gene_family']['max_length'] = '40';
+    /* Filter criterion: gene: Name */
+    $handler->display->display_options['filters']['name']['id'] = 'name';
+    $handler->display->display_options['filters']['name']['table'] = 'gene';
+    $handler->display->display_options['filters']['name']['field'] = 'name';
+    $handler->display->display_options['filters']['name']['operator'] = 'contains';
+    $handler->display->display_options['filters']['name']['group'] = 1;
+    $handler->display->display_options['filters']['name']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
+    $handler->display->display_options['filters']['name']['expose']['label'] = 'gene name';
+    $handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. "Contains: Glyma.15G005900", "Contains any word: Medtr4g076850 Araip.5TB63 Aradu.58KSZ")';
+    $handler->display->display_options['filters']['name']['expose']['use_operator'] = TRUE;
+    $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
+    $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
+    $handler->display->display_options['filters']['name']['expose']['remember_roles'] = array(
+        2 => '2',
+        1 => 0,
+        4 => 0,
+    );
+    $handler->display->display_options['filters']['name']['max_length'] = '40';
+    
 	/* Display: Page */
 	$handler = $view->new_display('page', 'Gene', 'page');
 	$handler->display->display_options['path'] = 'search/gene';
