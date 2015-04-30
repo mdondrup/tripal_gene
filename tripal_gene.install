@@ -31,9 +31,13 @@ function tripal_gene_install() {
    // we want to integrate the materialized views so that they
    // are available for Drupal Views, upon which our search forms are built
    tripal_gene_intergrate_view();
-  
+
+   $mview_id =  tripal_get_mview_id('gene2domain');
+   print "\nPopulating gene2domain mview.....\n";
+   tripal_populate_mview($mview_id);
+   
    $mview_id =  tripal_get_mview_id('gene');   
-  
+   print "\nPopulating gene mview.....\n";
    tripal_populate_mview($mview_id);
 
 }
@@ -43,7 +47,6 @@ function tripal_gene_install() {
  */
 function tripal_gene_uninstall() {
 
-  $drop_tbl   = chado_query("DROP TABLE IF EXISTS gene_to_domains");  
   // Drop the MView table if it exists
   $mview_id =  tripal_get_mview_id('gene');
   if ($mview_id) {
@@ -58,44 +61,80 @@ function tripal_gene_uninstall() {
   );
   tripal_remove_views_integration($delete_view); 
 
+  // Drop the MView table if it exists
+  $mview_id =  tripal_get_mview_id('gene2domain');
+  if ($mview_id) {
+      tripal_delete_mview($mview_id);
+  }
+  //Remove views integration
+  // Note: tripal_remove_views_intergration accepts table_name and priority in a key value form.
+
+  $delete_view=array(
+      'table_name' => 'gene2domain',
+      'priority' => '-1',
+  );
+  tripal_remove_views_integration($delete_view);
+  
 }
 
 
 
 function tripal_gene_add_mview(){
-    $helper_tbl = "gene_to_domains";
-    $drop_tbl   = chado_query("DROP TABLE IF EXISTS " . $helper_tbl);
-    $create_tbl = chado_query("CREATE TABLE " . $helper_tbl .
-    "(gene_id INT NOT NULL, domains TEXT)");
 
     $create_func = chado_query("
- CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS void AS
+CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS 
  'DECLARE
-    rec   record;
-    nbrow bigint;
- BEGIN
-    FOR rec IN
-    SELECT f.* from feature f inner join cvterm cvt
-    on f.type_id = cvt.cvterm_id where cvt.name = ''gene''
-    LOOP
-    execute  ''INSERT INTO " . $helper_tbl . " (domains, gene_id) select string_agg(name, E'''' ''''),  '' || rec.feature_id || '' from feature where feature_id IN
-    (select feature_id from featureloc where srcfeature_id IN
-    (select subject_id from feature_relationship where  object_id IN
-    (select subject_id from feature_relationship where object_id= '' || rec.feature_id || '')))'';
-    END LOOP;
-    RETURN;
- END'
- LANGUAGE 'plpgsql';");
-    print "\nPopulating table gene_to_domains with data.....\n";
-    $call_func = chado_query("SELECT map_gene_to_domains()");
+  rec   record;
+  result RECORD;
+         BEGIN
+              FOR rec IN
+                  SELECT f.* from feature f inner join cvterm cvt
+                      on f.type_id = cvt.cvterm_id where cvt.name = ''gene''
+                          LOOP
+                              RETURN QUERY
+                              select string_agg(name, E'' ''),  rec.feature_id from feature where feature_id IN
+                                  (select feature_id from featureloc where srcfeature_id IN
+                                      (select subject_id from feature_relationship where  object_id IN
+                                          (select subject_id from feature_relationship where object_id=rec.feature_id)));
+                                              END LOOP;
 
-    // make sure the mview does not reference $helper_tbl while it is still locked: 
-    $locked = true;
-    while ($locked) {
-        sleep(1);
-        $locked = chado_query("select granted from pg_locks l, pg_stat_all_tables t where l.relation=t.relid and relname = '" . $helper_tbl . "'")->fetchObject();
-    }
-    
+                                                   END'
+ LANGUAGE 'plpgsql';");
+
+    $sql_g2d = "select domains, gene_id from  map_gene_to_domains() g2d(domains text, gene_id integer)  ";
+        //"select domains, gene_id from  gene_to_domains";
+        //"select * from  map_gene_to_domains() g2d(domains text, gene_id integer); ";
+
+    $schema_g2d = array (
+        'table' => 'gene2domain',
+        'fields' => array (
+            'domains' => array (
+                'type' => 'text',
+                'not null' => false,
+            ),
+            'gene_id' => array (
+                'type' => 'int',
+                'not null' => 'FASLE',
+            ), 
+        ),
+        'indexes' => array (
+            'g2d_indx0' => array (
+                0 => 'gene_id',
+            ),
+        ), 
+    );
+
+        // add a comment to make sure this view makes sense to the site administator
+        $comment_g2d = t('This view is used to provide a helper table for mapping genes to domains. 
+                          The view is queried by the gene mview\'s sql so it needs to be created and populated before the population of gene mview.');
+
+        tripal_add_mview(
+            'gene2domain', // name of materialized view
+            'tripal_gene', // name of module submitting view
+            $schema_g2d,      // schema api array representation
+            $sql_g2d,         // sql query that loads the mview
+            $comment_g2d );
+        
   //Materialized view addition
   
   $sql_query="select gene1.*, feature.name as coordinates, familyprop.value as gene_family, noteprop.value as description, g2d.domains as domains 
@@ -126,7 +165,7 @@ function tripal_gene_add_mview(){
        CVT.cv_id=CV.cv_id and
        CV.name='sequence'    
    ) as gene1
-  left join gene_to_domains g2d on 
+  left join gene2domain g2d on 
   g2d.gene_id = gene1.gene_id                        
   inner join feature on            
   feature.feature_id=gene1.srcfeature_id
@@ -219,7 +258,7 @@ function tripal_gene_add_mview(){
 
    // add a comment to make sure this view makes sense to the site administator
   $comment = t('This view is used to provide a table for searching Gene Pages.');
-  print "\nCreating gene mview.....\n";
+
   tripal_add_mview(
     'gene', // name of materialized view
     'tripal_gene', // name of module submitting view
@@ -234,6 +273,71 @@ function tripal_gene_add_mview(){
  */
 
 function tripal_gene_intergrate_view(){
+    $integration_g2d = array (
+        'table' => 'gene2domain',
+        'name' => 'gene2domain',
+        'type' => 'chado',
+        'description' => '',
+        'priority' => '-1',
+        'base_table' => '1',
+        'fields' => array (
+            'gene_id' => array (
+                'name' => 'gene_id',
+                'title' => 'gene_id',
+                'description' => 'Gene ID',
+                'type' => 'int',
+                'handlers' => array (
+                    'filter' => array (
+                        'name' => 'views_handler_filter_numeric',
+                    ),
+                    'field' => array (
+                        'name' => 'views_handler_field_numeric',
+                    ),
+                    'sort' => array (
+                        'name' => 'views_handler_sort',
+                    ),
+                    'argument' => array (
+                        'name' => 'views_handler_argument_numeric',
+                    ),
+                    'relationship' => array (
+                        'name' => 'views_handler_relationship',
+                    ),
+                ),
+                'joins' => array (
+                ),
+            ),
+            'domains' => array (
+                'name' => 'domains',
+                'title' => 'Domains',
+                'description' => 'Domains',
+                'type' => 'text',
+                'handlers' => array (
+                    'filter' => array (
+                        'name' => 'tripal_views_handler_filter_select_string',
+                    ),
+                    'field' => array (
+                        'name' => 'views_handler_field',
+                    ),
+                    'sort' => array (
+                        'name' => 'views_handler_sort',
+                    ),
+                    'argument' => array (
+                        'name' => 'views_handler_argument_string',
+                    ),
+                    'relationship' => array (
+                        'name' => 'views_handler_relationship',
+                    ),
+                ),
+                'joins' => array (
+                ),
+            ),
+        ),
+    );
+    // add the array above that will integrate our qtl_search materialized view
+    // for use with Drupal Views
+    tripal_add_views_integration($integration_g2d);
+        
+
     $integration = array (
     'table' => 'gene',
     'name' => 'gene',

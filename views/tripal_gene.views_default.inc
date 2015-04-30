@@ -200,7 +200,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['abbreviation']['id'] = 'abbreviation';
     $handler->display->display_options['filters']['abbreviation']['table'] = 'gene';
     $handler->display->display_options['filters']['abbreviation']['field'] = 'abbreviation';
-    $handler->display->display_options['filters']['abbreviation']['value'] = 'Ara. duranensis';
+    $handler->display->display_options['filters']['abbreviation']['value'] = 'All';
     $handler->display->display_options['filters']['abbreviation']['exposed'] = TRUE;
     $handler->display->display_options['filters']['abbreviation']['expose']['operator_id'] = 'abbreviation_op';
     $handler->display->display_options['filters']['abbreviation']['expose']['label'] = 'Species';
@@ -212,8 +212,8 @@ function tripal_gene_defaultvalue_user_genes() {
         4 => 0,
     );
     $handler->display->display_options['filters']['abbreviation']['values_form_type'] = 'select';
+    $handler->display->display_options['filters']['abbreviation']['select_optional'] = TRUE;
     $handler->display->display_options['filters']['abbreviation']['max_length'] = '40';
-
     /* Filter criterion: gene: Domains */
     $handler->display->display_options['filters']['domains']['id'] = 'domains';
     $handler->display->display_options['filters']['domains']['table'] = 'gene';
