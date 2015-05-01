@@ -182,11 +182,11 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['description']['id'] = 'description';
 	$handler->display->display_options['fields']['description']['table'] = 'gene';
 	$handler->display->display_options['fields']['description']['field'] = 'description';
-    /* Field: gene: Domains */
+    /* Field: gene: Domains 
     $handler->display->display_options['fields']['domains']['id'] = 'domains';
     $handler->display->display_options['fields']['domains']['table'] = 'gene';
     $handler->display->display_options['fields']['domains']['field'] = 'domains';
-    $handler->display->display_options['fields']['domains']['exclude'] = TRUE;
+    $handler->display->display_options['fields']['domains']['exclude'] = TRUE;  */
     /* Field: gene: Bucket */
     $handler->display->display_options['fields']['actions']['id'] = 'actions';
     $handler->display->display_options['fields']['actions']['table'] = 'gene';
@@ -214,7 +214,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['abbreviation']['values_form_type'] = 'select';
     $handler->display->display_options['filters']['abbreviation']['select_optional'] = TRUE;
     $handler->display->display_options['filters']['abbreviation']['max_length'] = '40';
-    /* Filter criterion: gene: Domains */
+    /* Filter criterion: gene: Domains 
     $handler->display->display_options['filters']['domains']['id'] = 'domains';
     $handler->display->display_options['filters']['domains']['table'] = 'gene';
     $handler->display->display_options['filters']['domains']['field'] = 'domains';
@@ -231,7 +231,7 @@ function tripal_gene_defaultvalue_user_genes() {
         1 => 0,
         4 => 0,
     );
-    $handler->display->display_options['filters']['domains']['max_length'] = '40';
+    $handler->display->display_options['filters']['domains']['max_length'] = '40'; */
     /* Filter criterion: gene: description */
     $handler->display->display_options['filters']['description']['id'] = 'description';
     $handler->display->display_options['filters']['description']['table'] = 'gene';
