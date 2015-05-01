@@ -20,7 +20,7 @@ function tripal_gene_node_view($node, $view_mode, $langcode) {
             '#theme' => 'tripal_gene_jbrowse',
             '#node' => $node,
             '#tripal_toc_id'    => 'jbrowse',
-            '#tripal_toc_title' => 'JBrowse',
+            '#tripal_toc_title' => 'JBrowse/GBrowse',
         );
       }
       break;

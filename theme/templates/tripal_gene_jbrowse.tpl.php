@@ -73,20 +73,36 @@ if (($end + 2000) > $chrlen){
 
 $loc = $chr.":".$start."..".$end;
 
+
 if (($feature->type_id->name == "gene") && $data && $loc && $tracks) {
 
-  $url_source = $data;    
-  $qry_params = "&loc=%s&tracks=%s";
-  $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
-  //print_r($url_source);
-  
-  $iframe = "
-  </br>   
-  <div>
-    <iframe id='frameviewer' frameborder='0' width='100%' height='1000' scrolling='yes' src='".$url_source."' name='frameviewer'></iframe>
-  </div>";
+  if ($key ==  "gm") {
 
-  print $iframe;  
+    $url_source = $data;
+    $qry_params = "?start=%s;stop=%s;ref=%s;";
+    $url_source = sprintf($url_source.$qry_params, $start, $end, $chr);
+    $html = "<div>If the GBrowse window is not opened automatically, click <a href='".$url_source."' target=_blank>here</a>.</div>";
+    $html .= "<script>
+    var re = new RegExp('jbrowse');
+    if (window.location.href.match(re)) {
+      window.onload = function() { window.open('".$url_source."'); }
+    }
+    </script>";
+
+  } else {
+  
+    $url_source = $data;    
+    $qry_params = "&loc=%s&tracks=%s";
+    $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
+  
+    $html = "
+    </br>   
+    <div>
+      <iframe id='frameviewer' frameborder='0' width='100%' height='1000' scrolling='yes' src='".$url_source."' name='frameviewer'></iframe>
+    </div>";
+  }
+  
+  print $html;  
 }
 
 /*
