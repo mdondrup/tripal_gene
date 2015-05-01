@@ -75,9 +75,10 @@ $loc = $chr.":".$start."..".$end;
 
 if (($feature->type_id->name == "gene") && $data && $loc && $tracks) {
 
-  $url_source = "/jbrowse";    
-  $qry_params = "?data=%s&loc=%s&tracks=%s";
-  $url_source = sprintf($url_source.$qry_params, $data, $loc, $tracks);
+  $url_source = $data;    
+  $qry_params = "&loc=%s&tracks=%s";
+  $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
+  //print_r($url_source);
   
   $iframe = "
   </br>   
