@@ -31,11 +31,11 @@ function tripal_gene_install() {
    // we want to integrate the materialized views so that they
    // are available for Drupal Views, upon which our search forms are built
    tripal_gene_intergrate_view();
-
+/*
    $mview_id =  tripal_get_mview_id('gene2domain');
    print "\nPopulating gene2domain mview.....\n";
    tripal_populate_mview($mview_id);
-   
+*/   
    $mview_id =  tripal_get_mview_id('gene');   
    print "\nPopulating gene mview.....\n";
    tripal_populate_mview($mview_id);
@@ -61,6 +61,7 @@ function tripal_gene_uninstall() {
   );
   tripal_remove_views_integration($delete_view); 
 
+  /*
   // Drop the MView table if it exists
   $mview_id =  tripal_get_mview_id('gene2domain');
   if ($mview_id) {
@@ -74,13 +75,13 @@ function tripal_gene_uninstall() {
       'priority' => '-1',
   );
   tripal_remove_views_integration($delete_view);
-  
+  */
 }
 
 
 
 function tripal_gene_add_mview(){
-
+/*
     $create_func = chado_query("
 CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS 
  'DECLARE
@@ -136,8 +137,12 @@ CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS
             $comment_g2d );
         
   //Materialized view addition
-  
-  $sql_query="select gene1.*, feature.name as coordinates, familyprop.value as gene_family, noteprop.value as description, g2d.domains as domains 
+
+  left join gene2domain g2d on 
+  g2d.gene_id = gene1.gene_id                        
+
+  */  
+  $sql_query="select gene1.*, feature.name as coordinates, familyprop.value as gene_family, noteprop.value as description
     from
     (select  
        nf.nid as nid,
@@ -165,8 +170,6 @@ CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS
        CVT.cv_id=CV.cv_id and
        CV.name='sequence'    
    ) as gene1
-  left join gene2domain g2d on 
-  g2d.gene_id = gene1.gene_id                        
   inner join feature on            
   feature.feature_id=gene1.srcfeature_id
   left join featureprop noteprop on
