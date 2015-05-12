@@ -34,15 +34,13 @@ function tripal_gene_views_default_views() {
  * @ingroup tripal_gene
  */
 function tripal_gene_defaultvalue_user_genes() {
-
    $sql_count ="select count(f.feature_id) as count
-        from {feature} f left join {cvterm} cvt
-        on f.type_id=cvt.cvterm_id
-      where cvt.name = :name";
+   from {feature} f left join {cvterm} cvt
+   on f.type_id=cvt.cvterm_id
+   where cvt.name = :name";
 
    $args = array(':name' => 'polypeptide_domain');
    $result = chado_query($sql_count, $args)->fetchObject();
-
     
 	$view = new view();
 	$view->name = 'gene';
@@ -191,7 +189,6 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['description']['id'] = 'description';
 	$handler->display->display_options['fields']['description']['table'] = 'gene';
 	$handler->display->display_options['fields']['description']['field'] = 'description';
-
     if ($result->count > 0) {
       /* Field: gene: Domains */
       $handler->display->display_options['fields']['domains']['id'] = 'domains';
