@@ -34,7 +34,14 @@ function tripal_gene_views_default_views() {
  * @ingroup tripal_gene
  */
 function tripal_gene_defaultvalue_user_genes() {
+   $sql_count ="select count(f.feature_id) as count
+   from {feature} f left join {cvterm} cvt
+   on f.type_id=cvt.cvterm_id
+   where cvt.name = :name";
 
+   $args = array(':name' => 'polypeptide_domain');
+   $result = chado_query($sql_count, $args)->fetchObject();
+    
 	$view = new view();
 	$view->name = 'gene';
 	$view->description = '';
@@ -182,11 +189,13 @@ function tripal_gene_defaultvalue_user_genes() {
 	$handler->display->display_options['fields']['description']['id'] = 'description';
 	$handler->display->display_options['fields']['description']['table'] = 'gene';
 	$handler->display->display_options['fields']['description']['field'] = 'description';
-    /* Field: gene: Domains */
-    $handler->display->display_options['fields']['domains']['id'] = 'domains';
-    $handler->display->display_options['fields']['domains']['table'] = 'gene';
-    $handler->display->display_options['fields']['domains']['field'] = 'domains';
-    $handler->display->display_options['fields']['domains']['exclude'] = TRUE;
+    if ($result->count > 0) {
+      /* Field: gene: Domains */
+      $handler->display->display_options['fields']['domains']['id'] = 'domains';
+      $handler->display->display_options['fields']['domains']['table'] = 'gene';
+      $handler->display->display_options['fields']['domains']['field'] = 'domains';
+      $handler->display->display_options['fields']['domains']['exclude'] = TRUE;
+    }
     /* Field: gene: Bucket */
     $handler->display->display_options['fields']['actions']['id'] = 'actions';
     $handler->display->display_options['fields']['actions']['table'] = 'gene';
@@ -214,24 +223,26 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['abbreviation']['values_form_type'] = 'select';
     $handler->display->display_options['filters']['abbreviation']['select_optional'] = TRUE;
     $handler->display->display_options['filters']['abbreviation']['max_length'] = '40';
-    /* Filter criterion: gene: Domains */
-    $handler->display->display_options['filters']['domains']['id'] = 'domains';
-    $handler->display->display_options['filters']['domains']['table'] = 'gene';
-    $handler->display->display_options['filters']['domains']['field'] = 'domains';
-    $handler->display->display_options['filters']['domains']['operator'] = 'contains';
-    $handler->display->display_options['filters']['domains']['group'] = 1;
-    $handler->display->display_options['filters']['domains']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['domains']['expose']['operator_id'] = 'domains_op';
-    $handler->display->display_options['filters']['domains']['expose']['label'] = 'Domains';
-    $handler->display->display_options['filters']['domains']['expose']['use_operator'] = TRUE;
-    $handler->display->display_options['filters']['domains']['expose']['operator'] = 'domains_op';
-    $handler->display->display_options['filters']['domains']['expose']['identifier'] = 'domains';
-    $handler->display->display_options['filters']['domains']['expose']['remember_roles'] = array(
+    if ($result->count > 0) {
+      /* Filter criterion: gene: Domains */
+      $handler->display->display_options['filters']['domains']['id'] = 'domains';
+      $handler->display->display_options['filters']['domains']['table'] = 'gene';
+      $handler->display->display_options['filters']['domains']['field'] = 'domains';
+      $handler->display->display_options['filters']['domains']['operator'] = 'contains';
+      $handler->display->display_options['filters']['domains']['group'] = 1;
+      $handler->display->display_options['filters']['domains']['exposed'] = TRUE;
+      $handler->display->display_options['filters']['domains']['expose']['operator_id'] = 'domains_op';
+      $handler->display->display_options['filters']['domains']['expose']['label'] = 'Domains';
+      $handler->display->display_options['filters']['domains']['expose']['use_operator'] = TRUE;
+      $handler->display->display_options['filters']['domains']['expose']['operator'] = 'domains_op';
+      $handler->display->display_options['filters']['domains']['expose']['identifier'] = 'domains';
+      $handler->display->display_options['filters']['domains']['expose']['remember_roles'] = array(
         2 => '2',
         1 => 0,
         4 => 0,
-    );
-    $handler->display->display_options['filters']['domains']['max_length'] = '40';
+      );
+      $handler->display->display_options['filters']['domains']['max_length'] = '40';
+    }
     /* Filter criterion: gene: description */
     $handler->display->display_options['filters']['description']['id'] = 'description';
     $handler->display->display_options['filters']['description']['table'] = 'gene';
