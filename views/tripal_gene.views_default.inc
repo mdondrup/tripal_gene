@@ -241,7 +241,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['description']['exposed'] = TRUE;
     $handler->display->display_options['filters']['description']['expose']['operator_id'] = 'description_op';
     $handler->display->display_options['filters']['description']['expose']['label'] = 'description';
-    $handler->display->display_options['filters']['description']['expose']['description'] = '(e.Contains any word: )';
+    $handler->display->display_options['filters']['description']['expose']['description'] = '(e.g. Contains any word: proteasome)';
     $handler->display->display_options['filters']['description']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['description']['expose']['operator'] = 'description_op';
     $handler->display->display_options['filters']['description']['expose']['identifier'] = 'description';
@@ -259,7 +259,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['gene_family']['exposed'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator_id'] = 'gene_family_op';
     $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'gene family';
-    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.is equal to: phytozome_10.)';
+    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. is equal to: phytozome_10_2.59192412)';
     $handler->display->display_options['filters']['gene_family']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator'] = 'gene_family_op';
     $handler->display->display_options['filters']['gene_family']['expose']['identifier'] = 'gene_family';
