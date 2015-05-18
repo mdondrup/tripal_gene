@@ -227,7 +227,7 @@ function tripal_gene_add_mview(){
       result RECORD;
       BEGIN
       RETURN QUERY
- select string_agg(f1.name, E'' ''), f2.feature_id
+ select string_agg(DISTINCT(f1.name), E'' ''), f2.feature_id
  FROM feature f1
  JOIN featureloc
  ON featureloc.feature_id = f1.feature_id
