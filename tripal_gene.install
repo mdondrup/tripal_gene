@@ -222,30 +222,30 @@ left join featureprop familyprop on familyprop.feature_id=gene1.gene_id and fami
 
 function tripal_gene_add_mview(){
 
-    $create_func = chado_query("
-CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS 
- 'DECLARE
-  rec   record;
-  result RECORD;
-         BEGIN
-              FOR rec IN
-                  SELECT f.* from feature f inner join cvterm cvt
-                      on f.type_id = cvt.cvterm_id where cvt.name = ''gene''
-                          LOOP
-                              RETURN QUERY
-                              select string_agg(name, E'' ''),  rec.feature_id from feature where feature_id IN
-                                  (select feature_id from featureloc where srcfeature_id IN
-                                      (select subject_id from feature_relationship where  object_id IN
-                                          (select subject_id from feature_relationship where object_id=rec.feature_id)));
-                                              END LOOP;
-
-                                                   END'
+    $create_func = chado_query("CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS
+    'DECLARE
+      result RECORD;
+      BEGIN
+      RETURN QUERY
+ select string_agg(f1.name, E'' ''), f2.feature_id
+ FROM feature f1
+ JOIN featureloc
+ ON featureloc.feature_id = f1.feature_id
+ JOIN feature_relationship fr1
+ ON fr1.subject_id  = featureloc.srcfeature_id
+ JOIN feature_relationship fr2
+ ON fr1.object_id = fr2.subject_id
+ JOIN feature f2
+ ON fr2.object_id = f2.feature_id
+ JOIN cvterm
+ ON cvterm.cvterm_id = f2.type_id
+ WHERE cvterm.name = ''gene''
+ GROUP BY f2.feature_id;
+ END'
  LANGUAGE 'plpgsql';");
-
+    
     $sql_g2d = "select domains, gene_id from  map_gene_to_domains() g2d(domains text, gene_id integer)  ";
-        //"select domains, gene_id from  gene_to_domains";
-        //"select * from  map_gene_to_domains() g2d(domains text, gene_id integer); ";
-
+ 
     $schema_g2d = array (
         'table' => 'gene2domain',
         'fields' => array (
