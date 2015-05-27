@@ -115,7 +115,7 @@ function chado_node_get_base_table($content_type, $module = FALSE) {
   }
   else {
     $node_types = module_invoke_all('node_info');
-  
+
     if (isset($node_types[$content_type])) {
       $node_info = $node_types[$content_type];
     }
@@ -123,7 +123,7 @@ function chado_node_get_base_table($content_type, $module = FALSE) {
       return FALSE;
     }
   }
-  
+
   if (isset($node_info['chado_node_api']['base_table'])) {
     return $node_info['chado_node_api']['base_table'];
   }
@@ -131,6 +131,205 @@ function chado_node_get_base_table($content_type, $module = FALSE) {
     return FALSE;
   }
 
+}
+
+/**
+ * @section
+ * Common Functionality for Properties, Dbxrefs and relationships chado node API
+ */
+
+/**
+ * Validate the Triggering element from a node form.
+ *
+ * We are going to inspect the post to determine what PHP knows is the triggering
+ * element and if it doesn't agree with Drupal then we are actually going to
+ * change it in Drupal.
+ *
+ * This fixes an obscure bug triggered when a property is added and then
+ * a relationship removed, Drupal thinks the first property remove button was
+ * clicked and instead removes a property (not a relationship) and renders the new
+ * property table in the relationship table page space.
+ *
+ * NOTE: Many Drupal issues state that this problem is solved if the #name
+ * of the button is unique (which it is in our case) but we are still experiencing
+ * incorrectly determined triggering elements so we need to handle it ourselves.
+ */
+function chado_validate_node_form_triggering_element($form, &$form_state) {
+
+  // We are going to inspect the post to determine what PHP knows is the triggering
+  // element and if it doesn't agree with Drupal then we are actually going to
+  // change it in Drupal.
+  if ($_POST['_triggering_element_name'] != $form_state['triggering_element']['#name']) {
+    $form_state['triggering_element']['#name'] = $_POST['_triggering_element_name'];
+  }
+
+}
+
+/**
+ * Validate Adding Subtables entries from the node forms.
+ * Supported subtables: Properties, Relationships, Additional DBxrefs.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function chado_add_node_form_subtables_add_button_validate($form, &$form_state) {
+
+  // Based on triggering element call the correct validation function
+  // ASUMPTION #1: each of the buttons must have property, dbxref or relationship
+  // as the first part of the #name to uniquely identify the subsection.
+  if (preg_match('/^([a-z]+).*/', $form_state['triggering_element']['#name'], $matches)) {
+    $subsection = $matches[1];
+
+    switch($subsection) {
+      case 'properties':
+        chado_add_node_form_properties_add_button_validate($form, $form_state);
+        break;
+      case 'dbxrefs':
+        chado_add_node_form_dbxrefs_add_button_validate($form, $form_state);
+        break;
+      case 'relationships':
+        chado_add_node_form_relationships_add_button_validate($form, $form_state);
+        break;
+    }
+  }
+}
+
+/**
+ * Add subtable entries to the node forms.
+ * Supported subtables: Properties, Relationships, Additional DBxrefs.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function chado_add_node_form_subtables_add_button_submit($form, &$form_state) {
+
+  // Based on triggering element call the correct submit function
+  // ASUMPTION #1: each of the buttons must have properties, dbxrefs or relationships
+  // as the first part of the #name to uniquely identify the subsection.
+  if (preg_match('/^([a-z]+).*/', $form_state['triggering_element']['#name'], $matches)) {
+    $subsection = $matches[1];
+
+     switch($subsection) {
+      case 'properties':
+        chado_add_node_form_properties_add_button_submit($form, $form_state);
+        break;
+      case 'dbxrefs':
+        chado_add_node_form_dbxrefs_add_button_submit($form, $form_state);
+        break;
+      case 'relationships':
+        chado_add_node_form_relationships_add_button_submit($form, $form_state);
+        break;
+    }
+  }
+
+  // This is needed to ensure the form builder function is called for the node
+  // form in order for any of these changes to be seen.
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Validate Removing Subtables entries from the node forms.
+ * Supported subtables: Properties, Relationships, Additional DBxrefs.
+ *
+ * Since Removing isn't associated with any user input the only thing we
+ * need to validate is that Drupal has determined the triggering element correctly.
+ * That said, we will call each subtables associated validate function just incase
+ * there is some case-specific validation we do not know of or have not anticipated.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function chado_add_node_form_subtables_remove_button_validate($form, &$form_state) {
+
+  // We need to validate the trigerring element since Drupal has known
+  // issues determining this correctly when there are multiple buttons
+  // with the same label.
+  chado_validate_node_form_triggering_element($form, $form_state);
+
+  // Based on triggering element call the correct validation function
+  // ASUMPTION #1: each of the buttons must have property, dbxref or relationship
+  // as the first part of the #name to uniquely identify the subsection.
+  if (preg_match('/^([a-z]+).*/', $form_state['triggering_element']['#name'], $matches)) {
+    $subsection = $matches[1];
+
+      switch($subsection) {
+      case 'properties':
+        chado_add_node_form_properties_remove_button_validate($form, $form_state);
+        break;
+      case 'dbxrefs':
+        chado_add_node_form_dbxrefs_remove_button_validate($form, $form_state);
+        break;
+      case 'relationships':
+        chado_add_node_form_relationships_remove_button_validate($form, $form_state);
+        break;
+    }
+  }
+}
+
+/**
+ * Remove subtable entries to the node forms.
+ * Supported subtables: Properties, Relationships, Additional DBxrefs.
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function chado_add_node_form_subtables_remove_button_submit($form, &$form_state) {
+
+  // Based on triggering element call the correct submit function
+  // ASUMPTION #1: each of the buttons must have properties, dbxrefs or relationships
+  // as the first part of the #name to uniquely identify the subsection.
+  if (preg_match('/^([a-z]+).*/', $form_state['triggering_element']['#name'], $matches)) {
+    $subsection = $matches[1];
+
+    switch($subsection) {
+      case 'properties':
+        chado_add_node_form_properties_remove_button_submit($form, $form_state);
+        break;
+      case 'dbxrefs':
+        chado_add_node_form_dbxrefs_remove_button_submit($form, $form_state);
+        break;
+      case 'relationships':
+        chado_add_node_form_relationships_remove_button_submit($form, $form_state);
+        break;
+    }
+  }
+
+  // This is needed to ensure the form builder function is called for the node
+  // form in order for any of these changes to be seen.
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Ajax function which returns the section of the form to be re-rendered
+ * for either the properties, dbxref or relationship sub-sections.
+ *
+ * @ingroup tripal_core
+ */
+function chado_add_node_form_subtable_ajax_update($form, &$form_state) {
+
+  // We need to validate the trigerring element since Drupal has known
+  // issues determining this correctly when there are multiple buttons
+  // with the same label.
+  chado_validate_node_form_triggering_element($form, $form_state);
+
+  // Based on triggering element render the correct part of the form.
+  // ASUMPTION: each of the buttons must have property, dbxref or relationship
+  // as the first part of the #name to uniquely identify the subsection.
+  if (preg_match('/^([a-z]+).*/', $form_state['triggering_element']['#name'], $matches)) {
+    $subsection = $matches[1];
+
+    switch($subsection) {
+      case 'properties':
+        return $form['properties']['property_table'];
+        break;
+      case 'dbxrefs':
+        return $form['addtl_dbxrefs']['dbxref_table'];
+        break;
+      case 'relationships':
+        return $form['relationships']['relationship_table'];
+        break;
+    }
+  }
 }
 
 /**
@@ -362,7 +561,13 @@ function chado_node_sync_form($form, &$form_state) {
         "\"orphaned\".  This can occur if a node in Drupal is " .
         "deleted but the corresponding chado records is not and/or vice " .
         "versa. Click the button below to resolve these discrepancies.</p>"),
-    '#weight' => 1,
+    '#weight' => -10,
+  );
+  $form['cleanup']['cleanup_batch_size'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Batch Size'),
+      '#description' => t('The number of records to analyze together in a batch. If you are having memory issues you might want to decrease this number.'),
+      '#default_value' => variable_get('chado_node_api_cleanup_batch_size', 25000),
   );
   $form['cleanup']['button'] = array(
     '#type' => 'submit',
@@ -377,6 +582,26 @@ function chado_node_sync_form($form, &$form_state) {
   }
 
   return $form;
+}
+
+/**
+ * Generic Sync Form Validate
+ *
+ * @ingroup tripal_core
+ */
+function chado_node_sync_form_validate($form, &$form_state) {
+
+  if (empty($form_state['values']['cleanup_batch_size'])) {
+    $form_state['values']['cleanup_batch_size'] = 25000;
+    drupal_set_message('You entered a Batch Size of 0 for Cleaning-up orphaned nodes. Since this is not valid, we reset it to the default of 25,000.', 'warning');
+  }
+  elseif (!is_numeric($form_state['values']['cleanup_batch_size'])) {
+    form_set_error('cleanup_batch_size', 'The batch size must be a postitive whole number.');
+  }
+  else {
+    // Round the value just to make sure.
+    $form_state['values']['cleanup_batch_size'] = abs(round($form_state['values']['cleanup_batch_size']));
+  }
 }
 
 /**
@@ -449,13 +674,38 @@ function chado_node_sync_form_submit($form, $form_state) {
   if (preg_match('/^Clean up orphaned/', $form_state['values']['op'])) {
     $module = $form_state['chado_node_api']['hook_prefix'];
     $base_table = $form_state['chado_node_api']['base_table'];
-    $job_args = array($base_table);
+    $job_args = array($base_table, $form_state['values']['cleanup_batch_size']);
+    variable_set('chado_node_api_cleanup_batch_size', $form_state['values']['cleanup_batch_size']);
     tripal_add_job($form_state['values']['op'], $module, 'chado_cleanup_orphaned_nodes', $job_args, $user->uid);
   }
 }
 
 /**
- * Actual Sync Function. Works on a group of records
+ * Generic function for syncing records in Chado with Drupal nodes.
+ *
+ * @param $base_table
+ *   The name of the Chado table containing the record that should be synced
+ * @param $max_sync
+ *   Optional: A numeric value to indicate the maximum number of records to sync.
+ * @param $organism_id
+ *   Optional: Limit the list of records to be synced to only those that
+ *   are associated with this organism_id. If the record is not assocaited
+ *   with an organism then this field is not needed.
+ * @param $types
+ *   Optional: Limit the list of records to be synced to only those that
+ *   match the types listed in this array.
+ * @param $ids
+ *   Optional:  Limit the list of records to bye synced to only those whose
+ *   primary key value matches the ID provided in this array.
+ * @param $linking_table
+ *   Optional: Tripal maintains "linking" tables in the Drupal schema
+ *   to link Drupal nodes with Chado records.  By default these tables
+ *   are named as 'chado_' . $base_table.  But if for some reason the
+ *   linking table is not named in this way then it can be provided by this
+ *   argument.
+ * @param $job_id
+ *   Optional. Used by the Trpial Jobs system when running this function
+ *   as a job. It is not needed othewise.
  *
  * @ingroup tripal_chado_node_api
  */
@@ -515,9 +765,9 @@ function chado_node_sync_records($base_table, $max_sync = FALSE, $organism_id = 
   $hook_query_alter = $linking_table . '_chado_node_sync_select_query';
   if (function_exists($hook_query_alter)) {
     $update = call_user_func($hook_query_alter, array(
-      'select' => $select, 
-      'joins' => $joins, 
-      'where_clauses' => $where_clauses, 
+      'select' => $select,
+      'joins' => $joins,
+      'where_clauses' => $where_clauses,
       'where_args' => $where_args,
     ));
     // Now add in any new changes
@@ -549,7 +799,7 @@ function chado_node_sync_records($base_table, $max_sync = FALSE, $organism_id = 
     $where .= ') ';
     $sql_args = array_merge($sql_args, $where_args[$category]);
   }
-  
+
   if ($where) {
     $query .= $where;
   }
@@ -586,6 +836,7 @@ function chado_node_sync_records($base_table, $max_sync = FALSE, $organism_id = 
       "If the sync fails or is terminated prematurely then the entire set of \n" .
       "synced items is rolled back and will not be found in the database\n\n";
   try {
+    $percent = 0;
     foreach ($results as $record) {
 
       //print "\nLoading $base_table " . ($i + 1) . " of $count ($base_table_id=" . $record->{$base_table_id} . ")...";
@@ -628,6 +879,7 @@ function chado_node_sync_records($base_table, $max_sync = FALSE, $organism_id = 
         $form = array();
         $form_state = array();
         node_validate($new_node, $form, $form_state);
+
         if (!form_get_errors()) {
           $node = node_submit($new_node);
           node_save($node);
@@ -641,14 +893,55 @@ function chado_node_sync_records($base_table, $max_sync = FALSE, $organism_id = 
     }
     print "\n\nComplete!\n";
   }
-  
+
   catch (Exception $e) {
     $transaction->rollback();
     print "\n"; // make sure we start errors on new line
     watchdog_exception('trp-fsync', $e);
     print "FAILED: Rolling back database changes...\n";
   }
+}
 
+/**
+ * This function is a wrapper for the chado_cleanup_orphaned_nodes function.
+ * It breaks up the work of chado_cleanup_orphaned_nodes into smaller pieces
+ * that are more managable for servers that may  have low php memory settings.
+ *
+ * @param $table
+ *   The name of the table that corresonds to the node type we want to clean up.
+ * @param $nentries
+ *   The number of entries to parse at one time (ie: the batch size).
+ * @param $job_id
+ *   This should be the job id from the Tripal jobs system.  This function
+ *   will update the job status using the provided job ID.
+ *
+ * @ingroup tripal_chado_node_api
+ */
+function chado_cleanup_orphaned_nodes($table, $nentries = 25000, $job_id = NULL) {
+  $count = 0;
+
+  // Find the total number of entries in the table.
+  $dsql = "SELECT COUNT(*) FROM {node} WHERE type = 'chado_" . $table . "'";
+  $clsql= "SELECT COUNT(*) FROM {chado_" . $table . "}";
+
+  // Find the number nodes of type chado_$table and find the number of entries
+  // in chado_$table; keep the larger of the two numbers.
+  $ndat = db_query($dsql);
+  $temp = $ndat->fetchObject();
+  $count =  $temp->count;
+  $cdat = db_query($clsql);
+  $temp = $cdat->fetchObject();
+  if(count < $temp->count) {
+    $count =  $temp->count;
+  }
+
+  $m = ceil($count / $nentries);
+  for($i = 0; $i < $m; $i++) {
+    $offset = ($nentries*$i)+1;
+    chado_cleanup_orphaned_nodes_part($table, $job_id, $nentries, $offset);
+  }
+
+  return '';
 }
 
 /**
@@ -664,24 +957,18 @@ function chado_node_sync_records($base_table, $max_sync = FALSE, $organism_id = 
  *
  * @ingroup tripal_chado_node_api
  */
-function chado_cleanup_orphaned_nodes($table, $job_id = NULL) {
+function chado_cleanup_orphaned_nodes_part($table, $job_id = NULL, $nentries, $offset) {
   $count = 0;
 
+  // Change this variable to TRUE to print debugging values for memory leaks.
+  $debug_memory_leak = FALSE;
+
   // build the SQL statments needed to check if nodes point to valid analyses
-  $dsql = "SELECT * FROM {node} WHERE type = 'chado_" . $table . "' order by nid";
+  $dsql = "SELECT * FROM {node} WHERE type = 'chado_" . $table . "' ORDER BY nid LIMIT $nentries OFFSET $offset";
   $nsql = "SELECT * FROM {node} WHERE nid = :nid";
   $csql = "SELECT * FROM {chado_" . $table . "} WHERE nid = :nid ";
-  $clsql= "SELECT * FROM {chado_" . $table . "}";
+  $clsql= "SELECT * FROM {chado_" . $table . "} ORDER BY nid LIMIT $nentries OFFSET $offset";
   $lsql = "SELECT * FROM {" . $table . "} where " . $table . "_id = :" . $table . "_id ";
-
-  // load into nodes array
-  print "Getting nodes\n";
-  $nodes = array();
-  $res = db_query($dsql);
-  foreach ($res as $node) {
-    $nodes[$count] = $node;
-    $count++;
-  }
 
   // load the chado_$table into an array
   print "Getting chado_$table\n";
@@ -691,6 +978,14 @@ function chado_cleanup_orphaned_nodes($table, $job_id = NULL) {
     $cnodes[$count] = $node;
     $count++;
   }
+
+  // Free $res.
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $res = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing res: " . ($mu - memory_get_usage()) ." bytes\n";
+  }
+
   $interval = intval($count * 0.01);
   if ($interval < 1) {
     $interval = 1;
@@ -730,11 +1025,50 @@ function chado_cleanup_orphaned_nodes($table, $job_id = NULL) {
     }
     $i++;
   }
+
+  // Freeing up various resources: $cnodes, $node, $record, and $results.
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $cnodes = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing cnodes: " . ($mu - memory_get_usage()) ." bytes\n";
+  }
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $results = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing results: " . ($mu - memory_get_usage()) ." bytes\n";
+  }
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $node = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing node: " . ($mu - memory_get_usage()) ." bytes\n";
+  }
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $record = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing record: " . ($mu - memory_get_usage()) ." bytes\n";
+  }
+
   print "\t$deleted chado_$table entries missing either a node or chado entry.\n";
 
   // iterate through all of the nodes and delete those that don't
   // have a corresponding entry in chado_$table
   $deleted = 0;
+  // load into nodes array
+  print "Getting nodes\n";
+  $nodes = array();
+  $res = db_query($dsql);
+  foreach ($res as $node) {
+    $nodes[$count] = $node;
+    $count++;
+  }
+
+  // Free $res.
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $res = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing res:\n" . ($mu - memory_get_usage()) ." bytes\n";
+  }
+
   foreach ($nodes as $node) {
 
     // update the job status every 1% libraries
@@ -760,6 +1094,23 @@ function chado_cleanup_orphaned_nodes($table, $job_id = NULL) {
     }
     $i++;
   }
+  // // Freeing up various resources: $results, $link and $nodes
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $results = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing results: " . ($mu - memory_get_usage()) . " bytes\n";
+  }
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $link = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing link: " . ($mu - memory_get_usage()) . " bytes\n";
+  }
+  $mu = ($debug_memory_leak) ? memory_get_usage() : 0;
+  $nodes = NULL;
+  if ($debug_memory_leak) {
+    print "\tFreeing nodes: " . ($mu - memory_get_usage()) ." bytes\n";
+  }
+
   print "\t$deleted nodes did not have corresponding chado_$table entries.\n";
 
   return '';
@@ -859,43 +1210,43 @@ function hook_chado_node_sync_form_submit ($form, $form_state) {
  * Note: For your own module, replace hook in the function name with the machine-name of
  * your chado node type (ie: chado_feature).
  *
- * @param $query 
- *   An array containing the following: 
+ * @param $query
+ *   An array containing the following:
  *    'select': An array of select clauses
- *    'joins:  An array of joins (ie: a single join could be 
+ *    'joins:  An array of joins (ie: a single join could be
  *      'LEFT JOIN {chadotable} alias ON base.id=alias.id')
- *    'where_clauses: An array of where clauses which will all be AND'ed 
+ *    'where_clauses: An array of where clauses which will all be AND'ed
  *      together. Use :placeholders for values.
- *    'where_args: An associative array of arguments to be subbed in to the 
+ *    'where_args: An associative array of arguments to be subbed in to the
  *      where clause where the
  *
  * @ingroup tripal_chado_node_api
  */
 function hook_chado_node_sync_select_query($query) {
 
-  // You can add fields to be selected. Be sure to prefix each field with the 
+  // You can add fields to be selected. Be sure to prefix each field with the
   // tale name.
   $query['select'][] = 'example.myfavfield';
 
-  // Provide any join you may need to the joins array. Be sure to wrap the 
+  // Provide any join you may need to the joins array. Be sure to wrap the
   // table name in curly brackets.
   $query['joins'][] = 'LEFT JOIN {exampleprop} PROP ON PROP.example_id=EXAMPLE.example_id';
 
-  // The category should be a unique id for a group of items that will be 
+  // The category should be a unique id for a group of items that will be
   // concatenated together via an SQL 'OR'.  By default the $where_clases
-  // variable will come with categories of 'id', 'organism' and 'type'.  
+  // variable will come with categories of 'id', 'organism' and 'type'.
   // you can add your own unique category or alter the contents of the existing
   // categories.  Be sure to make sure the category doesn't already exist
   // in the $query['where_clauses']
-  $category = 'my_category'; 
-  
+  $category = 'my_category';
+
   // Provide any aditionall where clauses and their necessary arguments.
-  // Be sure to prefix the field with the table name.   Be sure that the 
-  // placeholder is unique across all categories (perhaps add a unique 
+  // Be sure to prefix the field with the table name.   Be sure that the
+  // placeholder is unique across all categories (perhaps add a unique
   // prefix/suffix).
   $query['where_clauses'][$category][] = 'example.myfavfield = :favvalue';
   $query['where_args'][$category][':favvalue'] = 'awesome-ness';
-  
+
   // Must return the updated query
   return $query;
 }

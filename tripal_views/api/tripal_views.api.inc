@@ -563,6 +563,9 @@ function tripal_rebuild_views_integrations($delete_first = FALSE) {
   }
 
   tripal_views_integrate_all_chado_tables();
+
+  // TODO: the function above should have a return value from which we can
+  // determine if the message below is approprite.
   drupal_set_message('Successfully rebuilt default Tripal Views Integrations');
 }
 
@@ -647,7 +650,6 @@ function tripal_add_views_integration($defn_array, $setup_id = FALSE) {
     $view_record['setup_id'] = $setup_id;
   }
   if ($defn_array['type'] == 'mview') {
-    // D7 TODO: Check DBTNG changes work
     $mview = db_query("SELECT mview_id FROM {tripal_mviews} WHERE mv_table=:table", array(':table' => $defn_array['table']));
     $mview = $mview->fetchObject();
     $view_record['mview_id'] = $mview->mview_id;

@@ -332,6 +332,7 @@ function chado_insert_record($table, $values, $options = array()) {
           array('!foreign_key' => $field, '!criteria' => print_r($value, TRUE)),
           array('print' => $print_errors)
         );
+        return FALSE;
       }
       elseif (sizeof($results) < 1) {
         tripal_report_error('tripal_core', TRIPAL_DEBUG,
@@ -339,6 +340,7 @@ function chado_insert_record($table, $values, $options = array()) {
           array('!foreign_key' => $field, '!criteria' => print_r($value, TRUE)),
           array('print' => $print_errors)
         );
+        return FALSE;
       }
       else {
         $insert_values[$field] = $results[0];
@@ -593,9 +595,15 @@ function chado_update_record($table, $match, $values, $options = NULL) {
   $update_values = array();   // contains the values to be updated
   $update_matches = array();  // contains the values for the where clause
 
-
   // get the table description
   $table_desc = chado_get_schema($table);
+  if (!$table_desc) {
+    tripal_report_error('tripal_core', TRIPAL_ERROR,
+      'The table name, %table, does not exist.',
+      array('%table', $table), array('print' => $print_errors)
+    );
+    return FALSE;
+  }
 
   // if the user wants us to return the record then we need to get the
   // unique primary key if one exists.  That way we can add it to the
@@ -629,6 +637,7 @@ function chado_update_record($table, $match, $values, $options = NULL) {
           array('!foreign_key' => $field, '!criteria' => print_r($value, TRUE)),
           array('print' => $print_errors)
         );
+        return FALSE;
       }
       elseif (sizeof($results) < 1) {
         tripal_report_error('tripal_core', TRIPAL_DEBUG,
@@ -636,6 +645,7 @@ function chado_update_record($table, $match, $values, $options = NULL) {
           array('!foreign_key' => $field, '!criteria' => print_r($value, TRUE)),
           array('print' => $print_errors)
         );
+        return FALSE;
       }
       else {
         $update_matches[$field] = $results[0];
@@ -658,6 +668,7 @@ function chado_update_record($table, $match, $values, $options = NULL) {
           array('!foreign_key' => $field, '!criteria' => print_r($value, TRUE)),
           array('print' => $print_errors)
         );
+        return FALSE;
       }
       elseif (sizeof($results) < 1) {
         tripal_report_error('tripal_core', TRIPAL_DEBUG,
@@ -665,6 +676,7 @@ function chado_update_record($table, $match, $values, $options = NULL) {
           array('!foreign_key' => $field, '!criteria' => print_r($value,TRUE)),
           array('print' => $print_errors)
         );
+        return FALSE;
       }
       else {
         $update_values[$field] = $results[0];
@@ -813,6 +825,12 @@ function chado_delete_record($table, $match, $options = NULL) {
   // get the table description
   $table_desc = chado_get_schema($table);
   $fields = $table_desc['fields'];
+  if (empty($table_desc)) {
+    tripal_report_error('tripal_core', TRIPAL_WARNING,
+      'chado_insert_record; There is no table description for !table_name',
+      array('!table_name' => $table), array('print' => $print_errors)
+    );
+  }
 
   // get the values needed for matching in the SQL statement
   foreach ($match as $field => $value) {
@@ -828,6 +846,7 @@ function chado_delete_record($table, $match, $options = NULL) {
           tripal_report_error('tripal_core', TRIPAL_ERROR,
             'chado_delete_record: When trying to find record to delete, too many records match the criteria supplied for !foreign_key foreign key constraint (!criteria)',
             array('!foreign_key' => $field, '!criteria' => print_r($value, TRUE)));
+          return FALSE;
         }
         elseif (sizeof($results) < 1) {
           //tripal_report_error('tripal_core', TRIPAL_ERROR, 'chado_delete_record: When trying to find record to delete, no record matches criteria supplied for !foreign_key foreign key constraint (!criteria)', array('!foreign_key' => $field, '!criteria' => print_r($value,TRUE)));
@@ -905,7 +924,7 @@ function chado_delete_record($table, $match, $options = NULL) {
  * Additional Options Include:
  *  - has_record
  *     Set this argument to 'TRUE' to have this function return a numeric
- *     value for the number of recrods rather than the array of records.  this
+ *     value for the number of records rather than the array of records.  this
  *     can be useful in 'if' statements to check the presence of particula records.
  *  - return_sql
  *     Set this to 'TRUE' to have this function return an array where the first
@@ -929,6 +948,8 @@ function chado_delete_record($table, $match, $options = NULL) {
  *     unique integer to differentiate between pagers when more than one
  *     appear on a page.  The 'element' should start with zero and increment by
  *     one for each pager.
+ *  -limit:  Specifies the number of records to return.
+ *  -offset:  Indicates the number of records to skip before returning records.
  *
  * @return
  *  An array of results, FALSE if the query was not executed
@@ -1059,6 +1080,12 @@ function chado_select_record($table, $columns, $values, $options = NULL) {
 
   // Get the table description.
   $table_desc = chado_get_schema($table);
+  if (empty($table_desc)) {
+    tripal_report_error('tripal_core', TRIPAL_WARNING,
+      'chado_insert_record; There is no table description for !table_name',
+      array('!table_name' => $table), array('print' => $print_errors)
+    );
+  }
 
   $select = '';
   $from = '';
@@ -1231,6 +1258,7 @@ function chado_select_record($table, $columns, $values, $options = NULL) {
               for %field where the definition supplied was %value',
               array('%field' => $field, '%value' => print_r($value, TRUE))
             );
+            return array();
           }
           // Ensure that there were results returned.
           elseif (count($results)==0) {
@@ -1239,6 +1267,7 @@ function chado_select_record($table, $columns, $values, $options = NULL) {
               returned no results where the definition supplied was %value',
               array('%field' => $field, '%value' => print_r($value, TRUE))
             );
+            return array();
           }
           // If there was only a single resutlt then add it using an op of =.
           elseif (count($results) == 1) {
@@ -1339,13 +1368,21 @@ function chado_select_record($table, $columns, $values, $options = NULL) {
     $sql = drupal_substr($sql, 0, -4);  // get rid of the trailing 'AND '
   } // end if (empty($where)){ } else {
 
-  // Finally add any ordering of the results to the SQL statement.
+  // Add any ordering of the results to the SQL statement.
   if (count($options['order_by']) > 0) {
     $sql .= " ORDER BY ";
     foreach ($options['order_by'] as $field => $dir) {
       $sql .= "$field $dir, ";
     }
     $sql = drupal_substr($sql, 0, -2);  // get rid of the trailing ', '
+  }
+
+  // Limit the records returned
+  if (array_key_exists('limit', $options) and is_numeric($options['limit'])) {
+    $sql .= " LIMIT " . $options['limit'];
+    if (array_key_exists('offset', $options) and is_numeric($options['offset'])) {
+      $sql .= " OFFSET " . $options['offset'];
+    }
   }
 
   // if the caller has requested the SQL rather than the results then do so.
@@ -1462,7 +1499,7 @@ function chado_query($sql, $args = array()) {
     // the featureloc table has some indexes that use function that call other functions
     // and those calls do not reference a schema, therefore, any tables with featureloc
     // must automaticaly have the chado schema set as active to find
-    if (preg_match('/chado.featureloc/i', $sql)) {
+    if (preg_match('/chado.featureloc/i', $sql) or preg_match('/chado.feature/i', $sql)) {
       $previous_db = chado_set_active('chado') ;
       $results = db_query($sql, $args);
       chado_set_active($previous_db);

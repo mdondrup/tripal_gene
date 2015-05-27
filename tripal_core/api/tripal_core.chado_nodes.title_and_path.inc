@@ -233,8 +233,8 @@ function chado_get_node_title($node) {
  *      the module is tripal_feature.
  *     -options: an array of quick-choice options to supply to the user. The key should be
  *      the token and the value should be a human-readable description of the option
- *   Optional keys include:
  *     -content_type: the name of the content type. Defaults to module name.
+ *   Optional keys include:
  *     -fieldset_title: the title to use for the fieldset. Defaults to "Set Page Title".
  *     -default_option: the default format to use which matches one of those in $details['options']
  *     -custom_tokens: an array of custom tokens that follow the same format as those
@@ -576,7 +576,10 @@ function chado_get_node_url($node) {
  *   error is displayed.
  *
  * @param $node
- *   The node to set the URL for.
+ *   The node to set the URL for.  The node object must have at a
+ *   minimum the 'nid' and 'type' properties, as well as the
+ *   chado object (e.g. 'organism' for chado_organism node type, and
+ *   'feature' for chado_feature node type, etc.).
  *
  * @return
  *   The URL alias that was set.
@@ -663,9 +666,7 @@ function chado_update_existing_node_urls($content_type, $job_id = 0) {
 
   try {
     // Get the number of records we need to set URLs for.
-    $num_nodes = db_query(
-        'SELECT count(*) FROM {' . $content_type . '}'
-      )->fetchField();
+    $num_nodes = db_query('SELECT count(*) FROM {' . $content_type . '}')->fetchField();
 
     // Calculate the interval at which we will print an update on the screen.
     $num_set = 0;
@@ -673,8 +674,8 @@ function chado_update_existing_node_urls($content_type, $job_id = 0) {
 
     if ($num_nodes > 0) {
 
-      print "There are $num_nodes nodes to update URLs for. You will be \n"
-       . "updated on the progress every 100 nodes.\n\n";
+      print "There are $num_nodes nodes to update URLs for. You will be \n" .
+            "updated on the progress every 100 nodes.\n\n";
 
       // Get the list of nodes of this particular content type.
       $query = new EntityFieldQuery();
@@ -687,10 +688,16 @@ function chado_update_existing_node_urls($content_type, $job_id = 0) {
 
         foreach ($nids as $nid) {
 
-          // Load the current node.
-          // We do it this way instead of using noad_load_multiple to load them
-          // all at once to avoid overloading the memory.
-          $node = node_load($nid);
+          // Load the current node. Normally here we would use the node_load()
+          // function that is part of the Drupal API.  However, this seems
+          // to have memory leaks that have not yet been identified, so
+          // we'll create the object by hand:
+          $node = new stdClass();
+          $node->nid = $nid;
+          $node->type = $content_type;
+          $table = preg_replace('/chado_/', '', $content_type);
+          $id = chado_get_id_from_nid($table, $nid);
+          $node->$table = chado_generate_var($table, array($table . "_id" => $id));
 
           // Now set the URL for the current node.
           $alias = chado_set_node_url($node);
@@ -699,14 +706,14 @@ function chado_update_existing_node_urls($content_type, $job_id = 0) {
           if ($num_set % $num_per_interval == 0) {
             $percent = ($num_set / $num_nodes) * 100;
 
+            // Update the user on progress.
+            $percent = sprintf("%.2f", $percent);
+            print "Setting URLs (" . $percent . "%). Memory: " . number_format(memory_get_usage()) . " bytes.\r";
+
             // Update the tripal job.
             if ($job_id) {
               tripal_set_job_progress($job_id, intval($percent));
             }
-
-            // Update the user on progress.
-            $percent = sprintf("%.2f", $percent);
-            print "Setting URLs (" . $percent . "%). Memory: " . number_format(memory_get_usage()) . " bytes.\r";
           }
           $num_set++;
         }
@@ -736,7 +743,7 @@ function chado_update_existing_node_urls($content_type, $job_id = 0) {
 }
 
 /**
- * Generic "Set Node url" sub-form for setting the url of any chado node
+ * Generic "Set Node URL" sub-form for setting the url of any chado node
  *
  * @param $form
  *   The Drupal form array into which the property form elements will be added
@@ -1250,31 +1257,33 @@ function chado_node_generate_tokens($base_table, $token_prefix = FALSE, $locatio
       'table' => $base_table,
       'field' => $field_name,
       'token' => $token,
-      'description' => $field_details['description'],
+      'description' => array_key_exists('description', $field_details) ? $field_details['description'] : '',
       'location' => $location
     );
 
-    if (preg_match('/TODO/',$field_details['description'])) {
+    if (!array_key_exists('description', $field_details) or preg_match('/TODO/',$field_details['description'])) {
       $tokens[$token]['description'] = 'The '.$field_name.' field of the '.$base_table.' table.';
     }
   }
 
   // RECURSION:
   // Follow the foreign key relationships recursively
-  foreach ($table_descrip['foreign keys'] as $table => $details) {
-    foreach ($details['columns'] as $left_field => $right_field) {
-      if (empty($token_prefix)) {
-        $sub_token_prefix = $base_table . '.' . $left_field;
-        $sub_location_prefix = implode(' > ',array($base_table, $left_field));
-      }
-      else {
-        $sub_token_prefix = $token_prefix . '>' . $base_table . ':' . $left_field;
-        $sub_location_prefix = $location_prefix . ' > ' . implode(' > ',array($base_table, $left_field));
-      }
+  if (array_key_exists('foreign keys', $table_descrip)) {
+    foreach ($table_descrip['foreign keys'] as $table => $details) {
+      foreach ($details['columns'] as $left_field => $right_field) {
+        if (empty($token_prefix)) {
+          $sub_token_prefix = $base_table . '.' . $left_field;
+          $sub_location_prefix = implode(' > ',array($base_table, $left_field));
+        }
+        else {
+          $sub_token_prefix = $token_prefix . '>' . $base_table . ':' . $left_field;
+          $sub_location_prefix = $location_prefix . ' > ' . implode(' > ',array($base_table, $left_field));
+        }
 
-      $sub_tokens = chado_node_generate_tokens($table, $sub_token_prefix, $sub_location_prefix);
-      if (is_array($sub_tokens)) {
-        $tokens = array_merge($tokens, $sub_tokens);
+        $sub_tokens = chado_node_generate_tokens($table, $sub_token_prefix, $sub_location_prefix);
+        if (is_array($sub_tokens)) {
+          $tokens = array_merge($tokens, $sub_tokens);
+        }
       }
     }
   }
@@ -1305,7 +1314,7 @@ function chado_get_token_value($token_info, $node) {
   $token = $token_info['token'];
   $table = $token_info['table'];
   $var = $node;
-  
+
   // Iterate through each portion of the location string. An example string
   // might be:  stock > type_id > name.
   $location = explode('>', $token_info['location']);
