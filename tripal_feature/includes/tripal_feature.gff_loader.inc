@@ -389,6 +389,10 @@ function tripal_feature_load_gff3($gff_file, $organism_id, $analysis_id,
   $ret = array();
   $date = getdate();
 
+  // An array that stores CVterms that have been looked up so we don't have
+  // to do the database query every time.
+  $cvterm_lookup = array();
+
   // empty the temp tables
   $sql = "DELETE FROM {tripal_gff_temp}";
   chado_query($sql);
@@ -396,7 +400,6 @@ function tripal_feature_load_gff3($gff_file, $organism_id, $analysis_id,
   chado_query($sql);
   $sql = "DELETE FROM {tripal_gffprotein_temp}";
   chado_query($sql);
-
 
   // begin the transaction
   $transaction = null;
@@ -441,7 +444,6 @@ function tripal_feature_load_gff3($gff_file, $organism_id, $analysis_id,
         "Cannot find the 'sequence' ontology", array());
       return '';
     }
-
     // get the organism for which this GFF3 file belongs
     $sql = "SELECT * FROM {organism} WHERE organism_id = :organism_id";
     $organism = chado_query($sql, array(':organism_id' => $organism_id))->fetchObject();
@@ -465,6 +467,23 @@ function tripal_feature_load_gff3($gff_file, $organism_id, $analysis_id,
       WHERE CV.cv_id = :cv_id and
        (lower(CVT.name) = lower(:name) or lower(CVTS.synonym) = lower(:synonym))
      ";
+
+    // If a landmark type was provided then pre-retrieve that.
+    if ($landmark_type) {
+      $query = array(
+        ':cv_id' => $cv->cv_id,
+        ':name' => $landmark_type,
+        ':synonym' => $landmark_type
+      );
+      $result = chado_query($sel_cvterm_sql, $query);
+      $landmark_cvterm = $result->fetchObject();
+      if (!$landmark_cvterm) {
+        tripal_report_error('tripal_feature', TRIPAL_ERROR,
+          'cannot find landmark feature type \'%landmark_type\'.',
+          array('%landmark_type' => $landmark_type));
+        return '';
+      }
+    }
 
     // iterate through each line of the GFF file
     print "Parsing Line $line_num (0.00%). Memory: " . number_format(memory_get_usage()) . " bytes\r";
@@ -503,20 +522,7 @@ function tripal_feature_load_gff3($gff_file, $organism_id, $analysis_id,
         $rstart = $region_matches[2];
         $rend = $region_matches[3];
         if ($landmark_type) {
-          $query = array(
-            ':cv_id' => $cv->cv_id,
-            ':name' => $landmark_type,
-            ':synonym' => $landmark_type
-          );
-          $result = chado_query($sel_cvterm_sql, $query);
-          $cvterm = $result->fetchObject();
-          if (!$cvterm) {
-            tripal_report_error('tripal_feature', TRIPAL_ERROR,
-             'cannot find feature type \'%landmark_type\' on line %line_num of the GFF file',
-              array('%landmark_type' => $landmark_type, '%line_num' => $line_num));
-            return '';
-          }
-          tripal_feature_load_gff3_feature($organism, $analysis_id, $cvterm, $rid,
+          tripal_feature_load_gff3_feature($organism, $analysis_id, $landmark_cvterm, $rid,
             $rid, '', 'f', 'f', 1, 0);
         }
         continue;
@@ -573,13 +579,18 @@ function tripal_feature_load_gff3($gff_file, $organism_id, $analysis_id,
       if (strcmp($phase, '.') == 0) {
         $phase = '';
       }
-      $result = chado_query($sel_cvterm_sql, array(':cv_id' => $cv->cv_id, ':name' => $type, ':synonym' => $type));
-
-      $cvterm = $result->fetchObject();
-      if (!$cvterm) {
-        tripal_report_error('tripal_feature', TRIPAL_ERROR, 'cannot find feature term \'%type\' on line %line_num of the GFF file',
-          array('%type' => $type, '%line_num' => $line_num));
-        return '';
+      if (array_key_exists($type, $cvterm_lookup)) {
+        $cvterm = $cvterm_lookup[$type];
+      }
+      else {
+        $result = chado_query($sel_cvterm_sql, array(':cv_id' => $cv->cv_id, ':name' => $type, ':synonym' => $type));
+        $cvterm = $result->fetchObject();
+        $cvterm_lookup[$type] = $cvterm;
+        if (!$cvterm) {
+          tripal_report_error('tripal_feature', TRIPAL_ERROR, 'cannot find feature term \'%type\' on line %line_num of the GFF file',
+            array('%type' => $type, '%line_num' => $line_num));
+          return '';
+        }
       }
 
       // break apart each of the attributes
@@ -1630,8 +1641,6 @@ function tripal_feature_load_gff3_feature($organism, $analysis_id, $cvterm, $uni
       'organism_id' => $organism->organism_id,
       'name' => $name,
       'uniquename' => $uniquename,
-//      'residues' => $residues,
-//      'seqlen' => drupal_strlen($residues),
       'md5checksum' => md5($residues),
       'type_id' => $cvterm->cvterm_id,
       'is_analysis' => $is_analysis,
@@ -1646,8 +1655,6 @@ function tripal_feature_load_gff3_feature($organism, $analysis_id, $cvterm, $uni
   elseif (!$add_only) {
     $values = array(
       'name' => $name,
-//      'residues' => $residues,
-//      'seqlen' => drupal_strlen($residues),
       'md5checksum' => md5($residues),
       'is_analysis' => $is_analysis,
       'is_obsolete' => $is_obsolete,
@@ -2029,14 +2036,18 @@ function tripal_feature_load_gff3_fasta($fh, $interval, &$num_read, &$intv_read,
         else {
           // if we have a feature then add the residues
           $feature = $result[0];
-          $values = array('residues' => $residues);
+          $values = array(
+            'residues' => $residues,
+            'seqlen' => strlen($residues)
+          );
           $match = array('feature_id' => $feature->feature_id);
           chado_update_record('feature', $match, $values);
         }
       }
 
-      // get the feature ID for this ID from the tripal_gff_temp table
-      $id = preg_replace('/^>(.*)$/', '\1', $line);
+      // get the feature ID for this ID from the tripal_gff_temp table. It
+      // should be the name up to the first space
+      $id = preg_replace('/^>([^\s]+).*$/', '\1', $line);
       $residues = '';
     }
     else {
@@ -2054,7 +2065,10 @@ function tripal_feature_load_gff3_fasta($fh, $interval, &$num_read, &$intv_read,
   else {
     // if we have a feature then add the residues
     $feature = $result[0];
-    $values = array('residues' => $residues);
+    $values = array(
+      'residues' => $residues,
+      'seqlen' => strlen($residues)
+    );
     $match = array('feature_id' => $feature->feature_id);
     chado_update_record('feature', $match, $values);
   }
