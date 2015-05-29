@@ -222,12 +222,7 @@ left join featureprop familyprop on familyprop.feature_id=gene1.gene_id and fami
 
 function tripal_gene_add_mview(){
 
-    $create_func = chado_query("CREATE OR REPLACE FUNCTION map_gene_to_domains() RETURNS SETOF record AS
-    'DECLARE
-      result RECORD;
-      BEGIN
-      RETURN QUERY
- select string_agg(DISTINCT(f1.name), E'' ''), f2.feature_id
+    $sql_g2d = "select string_agg(DISTINCT(f1.name), E' '), f2.feature_id
  FROM feature f1
  JOIN featureloc
  ON featureloc.feature_id = f1.feature_id
@@ -239,13 +234,9 @@ function tripal_gene_add_mview(){
  ON fr2.object_id = f2.feature_id
  JOIN cvterm
  ON cvterm.cvterm_id = f2.type_id
- WHERE cvterm.name = ''gene''
- GROUP BY f2.feature_id;
- END'
- LANGUAGE 'plpgsql';");
+ WHERE cvterm.name = 'gene'
+ GROUP BY f2.feature_id";
     
-    $sql_g2d = "select domains, gene_id from  map_gene_to_domains() g2d(domains text, gene_id integer)  ";
- 
     $schema_g2d = array (
         'table' => 'gene2domain',
         'fields' => array (
