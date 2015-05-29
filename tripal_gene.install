@@ -227,24 +227,6 @@ function tripal_gene_add_mview(){
       result RECORD;
       BEGIN
       RETURN QUERY
-select string_agg(f1.name, E'' ''), f2.feature_id
-FROM feature f1
-JOIN featureloc
- ON featureloc.feature_id = f1.feature_id
-JOIN feature_relationship fr1
- ON fr1.subject_id  = featureloc.srcfeature_id
-JOIN feature_relationship fr2
- ON fr1.object_id = fr2.subject_id
-JOIN feature f2
- ON fr2.object_id = f2.feature_id
-JOIN cvterm
- ON cvterm.cvterm_id = f2.type_id
-WHERE cvterm.name = ''gene''
-GROUP BY f2.feature_id;
-END'
- LANGUAGE 'plpgsql';");
-
-=======
  select string_agg(DISTINCT(f1.name), E'' ''), f2.feature_id
  FROM feature f1
  JOIN featureloc
@@ -261,7 +243,6 @@ END'
  GROUP BY f2.feature_id;
  END'
  LANGUAGE 'plpgsql';");
->>>>>>> 8cc5bf6e9f60f8e8ec8965c4c5048aed7db8455f
     
     $sql_g2d = "select domains, gene_id from  map_gene_to_domains() g2d(domains text, gene_id integer)  ";
  
