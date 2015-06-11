@@ -233,6 +233,7 @@ function tripal_gene_defaultvalue_user_genes() {
       $handler->display->display_options['filters']['domains']['exposed'] = TRUE;
       $handler->display->display_options['filters']['domains']['expose']['operator_id'] = 'domains_op';
       $handler->display->display_options['filters']['domains']['expose']['label'] = 'Domains';
+      $handler->display->display_options['filters']['domains']['expose']['description'] = '(e.g. [Contains]: PF05659)';
       $handler->display->display_options['filters']['domains']['expose']['use_operator'] = TRUE;
       $handler->display->display_options['filters']['domains']['expose']['operator'] = 'domains_op';
       $handler->display->display_options['filters']['domains']['expose']['identifier'] = 'domains';
