@@ -89,6 +89,18 @@ if (($feature->type_id->name == "gene") && $data && $loc && $tracks) {
     }
     </script>";
 
+  } else if (key == "vr") {
+  #currently, there is no jbrowse for vigra, but we can embed it unlike glyma which is external
+  
+    $url_source = $data;    
+    $qry_params = "?%s;start=%s;stop=%s;";
+    $url_source = sprintf($url_source.$qry_params, $chr, $start, $end);
+  
+    $html = "
+    </br>   
+    <div>
+      <iframe id='frameviewer' frameborder='0' width='100%' height='1000' scrolling='yes' src='".$url_source."' name='frameviewer'></iframe>
+    </div>";
   } else {
   
     $url_source = $data;    
