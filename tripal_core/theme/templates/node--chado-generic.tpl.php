@@ -14,17 +14,33 @@ else {
 
       // Hide all but the first data pane 
       $(".tripal-data-pane").hide().filter(":first-child").show();
- 
+
+      $(".tripal_toc_list_item_link").click(function(){
+          // When a title in the table of contents is clicked, then 
+          // show the corresponding item in the details box
+          var id = $(this).attr('id') + "-tripal-data-pane";
+          $(".tripal-data-pane").hide().filter("#"+ id).fadeIn('fast');
+          // Additionally, set the location.hash for better navigation
+          var pane = id.match(/^(\w+)\-tripal\-data\-pane/)[1];
+          window.location.hash = 'pane='+pane;
+          // Cleanup of previous pane in location.href, if any.
+          var url = location.href.replace(location.hash, '');
+          var newUrl = url.replace(/[\?\&]?(pane|block)=\w+[\&]?/, '');
+          if(newUrl !== url) {
+              // trigger a page reload with the cleaned url
+              window.location.href = newUrl +'#pane=' + pane;
+          }
+          return false;
+      });
+
       // If a ?pane= is specified in the URL then we want to show the
-      // requested content pane. For previous version of Tripal,
-      // ?block=, was used.  We support it here for backwards
-      // compatibility
-
+      // requested content pane.  #pane= can be used alternately. For
+      // previous version of Tripal, ?block=, was used.  We support it
+      // here for backwards compatibility
       var pane;
-
       pane = window.location.href.match(/[\?|\&]pane=(.+?)[\&|\#]/);
       if (pane == null) {
-          pane = window.location.href.match(/[\?|\&]pane=(.+)/);
+          pane = window.location.href.match(/[\?|\&\#]pane=(.+)/);
       }
       // if we don't have a pane then try the old style ?block=
       if (pane == null) {
@@ -33,28 +49,6 @@ else {
             pane = window.location.href.match(/[\?|\&]block=(.+)/);
         }
       }
-
-      // When a title in the table of contents is clicked, then 
-      // show the corresponding item in the details box 
-      $(".tripal_toc_list_item_link").click(function(){
-        var id = $(this).attr('id') + "-tripal-data-pane";
-        var pane_id = $(this).attr('id');        
-
-        // the click event occurs on a page that does have previously set pane value in the url:
-        if(pane != null){         
-            window.location.assign(window.location.href.replace("block=".concat(pane[1]), "pane=".concat(pane_id))
-            .replace("pane=".concat(pane[1]), "pane=".concat(pane_id)));
-            return false;
-        } // the click event occurs on a page that does NOT ave previously set pane value in the url:  
-        else{  
-          var add_pane = window.location.href.match(/\?/) ? "&" : "?";
-          window.location.assign(window.location.href.concat(add_pane).concat("pane=").concat(pane_id));         
-          return false;
-        }
-      });
-
-
-      // this code gets executed when the page is accessed via .tripal_toc_list_item_link click event:      
       if(pane != null){
         $(".tripal-data-pane").hide().filter("#"+ pane[1] + "-tripal-data-pane").fadeIn('fast');
       }
