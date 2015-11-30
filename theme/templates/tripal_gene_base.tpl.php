@@ -22,6 +22,16 @@ function file2arr($file) {
 }//file2arr()
 
 
+  // Get gene family URL prefix from the view
+  $gene_family_url = "/chado_phylotree/"; // default
+  $view = views_get_view('gene');
+  foreach ($view->display as $part) {
+    if (isset($part->display_options['fields']['gene_family']['alter'])) {
+      $gene_family_url = $part->display_options['fields']['gene_family']['alter']['path'];
+      $gene_family_url = preg_replace("/\[.*?\]/", '', $gene_family_url);
+    }
+  }
+
   drupal_add_css($my_path . '/theme/css/basket.css');
 
   $feature  = $variables['node']->feature;  
@@ -246,7 +256,7 @@ function file2arr($file) {
     $gene_family_html = "<i>$gene_family</i>";
   }
   else {
-    $url = "/chado_phylotree/$gene_family";
+    $url = $gene_family_url . $gene_family;
     $gene_family_html = "<a href='$url'>$gene_family</a>";
   }
   $rows[] = array(
