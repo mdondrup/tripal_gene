@@ -29,6 +29,9 @@ function file2arr($file) {
     if (isset($part->display_options['fields']['gene_family']['alter'])) {
       $gene_family_url = $part->display_options['fields']['gene_family']['alter']['path'];
       $gene_family_url = preg_replace("/\[.*?\]/", '', $gene_family_url);
+
+      // make sure there is a leading /
+      if (!preg_match("/^/")) $gene_family_url = "/$gene_family_url";
     }
   }
 
