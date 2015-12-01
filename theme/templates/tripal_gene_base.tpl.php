@@ -22,8 +22,9 @@ function file2arr($file) {
 }//file2arr()
 
 
-  // Get gene family URL prefix from the view
-  $gene_family_url = "/chado_phylotree/"; // default
+  // Get gene family URL prefix from the view.
+  //   Note that the URL takes the gene model name rather than gene family name.
+  $gene_family_url = "/chado_gene_phylotree_v2/"; // default
   $view = views_get_view('gene');
   foreach ($view->display as $part) {
     if (isset($part->display_options['fields']['gene_family']['alter'])) {
@@ -31,7 +32,10 @@ function file2arr($file) {
       $gene_family_url = preg_replace("/\[.*?\]/", '', $gene_family_url);
 
       // make sure there is a leading /
-      if (!preg_match("/^/")) $gene_family_url = "/$gene_family_url";
+      if (!preg_match("/^/", $gene_family_url) 
+            && !preg_match("/^http/", $gene_family_url)) {
+        $gene_family_url = "/$gene_family_url";
+      }
     }
   }
 
@@ -256,10 +260,11 @@ function file2arr($file) {
   
   // Gene family rows
   if ($gene_family == 'unknown') {
-    $gene_family_html = "<i>$gene_family</i>";
+    $gene_family_html = "<i>unknown</i>";
   }
   else {
-    $url = $gene_family_url . $gene_family;
+    // Link with uniquename for gene feature (assumes 1 gene family per gene model)
+    $url = $gene_family_url . $feature->uniquename;
     $gene_family_html = "<a href='$url'>$gene_family</a>";
   }
   $rows[] = array(
