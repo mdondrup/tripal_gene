@@ -37,7 +37,7 @@ function tripal_gene_install() {
   $sql_count ="
     SELECT COUNT(f.feature_id) AS count
     FROM feature f 
-      LEFT JOINT cvterm cvt ON f.type_id=cvt.cvterm_id         
+      LEFT JOIN cvterm cvt ON f.type_id=cvt.cvterm_id         
     WHERE cvt.name = :name";                                 
                                            
    $args = array(':name' => 'polypeptide_domain');
@@ -104,7 +104,6 @@ function tripal_gene_uninstall() {
   }
 }
 
-
 /**
  * tripal_gene_add_domainless_mview()
  */
@@ -149,11 +148,11 @@ function tripal_gene_add_domainless_mview(){
     'fields' => array(
         'nid' => array(
             'type' => 'int',
-            'not null' => FASLE,
+            'not null' => false,
         ),
         'gene_id' => array(
             'type' => 'int',
-            'not null' => 'FASLE',
+            'not null' => false,
         ),
         'organism_id' => array(
             'type' => 'int',
@@ -239,7 +238,6 @@ function tripal_gene_add_domainless_mview(){
   );
 }   
 
-
 /**
  * tripal_gene_add_mview()
  */
@@ -264,7 +262,7 @@ function tripal_gene_add_mview(){
         ),
         'gene_id' => array(
           'type' => 'int',
-          'not null' => 'FASLE',
+          'not null' => false,
         ), 
       ),
       'indexes' => array(
@@ -325,11 +323,11 @@ function tripal_gene_add_mview(){
     'fields' => array(
          'nid' => array(
           'type' => 'int',
-          'not null' => FASLE,
+          'not null' => false,
          ),
       'gene_id' => array(
         'type' => 'int',
-        'not null' => 'FASLE',
+        'not null' => false,
       ),
       'organism_id' => array(
         'type' => 'int',
