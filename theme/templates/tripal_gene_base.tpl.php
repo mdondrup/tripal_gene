@@ -32,7 +32,7 @@ function file2arr($file) {
       $gene_family_url = preg_replace("/\[.*?\]/", '', $gene_family_url);
 
       // make sure there is a leading /
-      if (!preg_match("/^/", $gene_family_url) 
+      if (!preg_match("/^\//", $gene_family_url) 
             && !preg_match("/^http/", $gene_family_url)) {
         $gene_family_url = "/$gene_family_url";
       }
