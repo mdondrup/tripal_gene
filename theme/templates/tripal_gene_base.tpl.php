@@ -140,7 +140,7 @@ function file2arr($file) {
       continue;
     }
   }
-echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end<br>";
+#echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end<br>";
 
   if (!$chrname || !$chrlen || !$start || !$end) {
     // Can't create JBrowse object
