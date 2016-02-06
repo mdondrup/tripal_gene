@@ -140,7 +140,7 @@ function file2arr($file) {
       continue;
     }
   }
-//echo "chrname=$chrname, chrlen=$chrlen, start=$start, end=$end<br>";
+echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end<br>";
 
   if (!$chrname || !$chrlen || !$start || !$end) {
     // Can't create JBrowse object
@@ -179,7 +179,12 @@ function file2arr($file) {
       }//Glycine max
       else {
         $url_source = $data;    
-        $qry_params = "&loc=%s&tracks=%s";
+	if (preg_match("/gbrowse_img/", $url_source)) {
+		$qry_params = "&q=%s&tracks=%s";
+	}
+	else {
+		$qry_params = "&loc=%s&tracks=%s";
+	}
         $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
         $jbrowse_html = "
           </br>   
