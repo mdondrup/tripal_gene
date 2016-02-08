@@ -144,7 +144,7 @@ function file2arr($file) {
 
   if (!$chrname || !$chrlen || !$start || !$end) {
     // Can't create JBrowse object
-    $jbrowse_html = 'No JBrowse instance available for this organism.';
+    $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
   }
   else {
     // the LIS chr name is mapped to its jbrowse equivalent 
