@@ -139,6 +139,10 @@ SQL;
  * @ingroup tripal_organism
  */
 function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'views_exposed_form') { 
+    $form['#validate'][] = 'tripal_gene_form_validate'; 
+  }
+
   $form['#method'] = 'post';
   switch ($form_id) {
     case 'chado_gene_node_form':
@@ -187,17 +191,6 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
   $core_path = drupal_get_path('module', 'tripal_core');
 
   $items = array(
-//    'node__chado_gene' => array(
-//      'template' => 'node--chado-generic',
-//      'render element' => 'node',
-//      'base hook' => 'node',
-//      'path' => "$core_path/theme/templates",
-//    ),
-//    'tripal_gene_description' => array(
-//      'variables' => array('node' => NULL),
-//      'template' => 'tripal_gene_description',
-//      'path' => "$path/theme/templates",
-//    ),
     'tripal_gene_base' => array(
       'variables' => array('node' => NULL),
       'template' => 'tripal_gene_base',
@@ -212,4 +205,18 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
  
   return $items;
 }
+
+
+/**
+  * Form validator for search form.
+  *
+  * Use this to trim whitespace from text fields.
+  */
+function tripal_gene_form_validate($form, &$form_state) { 
+  $form_state['values']['domains']     = trim($form_state['values']['domains']); 
+  $form_state['values']['description'] = trim($form_state['values']['description']); 
+  $form_state['values']['gene_family'] = trim($form_state['values']['gene_family']); 
+  $form_state['values']['name']        = trim($form_state['values']['name']); 
+}
+  
 
