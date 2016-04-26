@@ -213,10 +213,14 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
   * Use this to trim whitespace from text fields.
   */
 function tripal_gene_form_validate($form, &$form_state) { 
-  $form_state['values']['domains']     = trim($form_state['values']['domains']); 
-  $form_state['values']['description'] = trim($form_state['values']['description']); 
-  $form_state['values']['gene_family'] = trim($form_state['values']['gene_family']); 
-  $form_state['values']['name']        = trim($form_state['values']['name']); 
+  if (isset($form_state['values']['domains']))
+    $form_state['values']['domains']     = trim($form_state['values']['domains']); 
+  if (isset($form_state['values']['description']))
+    $form_state['values']['description'] = trim($form_state['values']['description']); 
+  if (isset($form_state['values']['gene_family']))
+    $form_state['values']['gene_family'] = trim($form_state['values']['gene_family']); 
+  if (isset($form_state['values']['name']))
+    $form_state['values']['name']        = trim($form_state['values']['name']); 
 }
   
 
