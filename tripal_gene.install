@@ -393,6 +393,9 @@ function tripal_gene_add_mview(){
       'gene_indx0' => array(
         0 => 'abbreviation',
       ),
+      'gene_indx1' => array(
+          0 => 'nid',
+      ),
       'gene_indx2' => array(
         0 => 'name',
       ),
