@@ -111,11 +111,8 @@ function file2arr($file) {
   $tracks_arr = file2arr($tracks_file);
   $chr_arr    = file2arr($chr_file);
 
-  // Concatenate initial letters of genus and species to use as key for arrays
-  $key = strtolower(substr($feature->organism_id->genus, 0, 1) 
-                           . substr($feature->organism_id->species, 0, 1)
-  );
-  
+  $key = $feature->organism_id->abbreviation;
+
   // $data_arr maps the genus and species abbreviation to the dataset name:
   $data   = $data_arr[$key];
   
@@ -140,7 +137,7 @@ function file2arr($file) {
       continue;
     }
   }
-#echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end<br>";
+//echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end, tracks=$tracks<br>";
 
   if (!$chrname || !$chrlen || !$start || !$end) {
     // Can't create JBrowse object
@@ -155,9 +152,8 @@ function file2arr($file) {
     $end = (($end + 2000) > $chrlen) ? $chrlen : $end + 2000;
     $loc = $chr.":".$start."..".$end;
 
-    if (($feature->type_id->name == "gene") 
-          && $data && $loc && $tracks) {
-      if ($key ==  "gm") {
+    if (($feature->type_id->name == "gene") && $data && $loc && $tracks) {
+      if ($key ==  "glyma") {   #peu
         // Glycine max JBrowse instance is at Soybase.org
         $url_source = $data;
         $qry_params = "?start=%s;stop=%s;ref=%s;";
