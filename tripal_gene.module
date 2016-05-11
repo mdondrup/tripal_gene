@@ -188,7 +188,7 @@ function tripal_gene_help ($path, $arg) {
  * @ingroup tripal_organism
  */
 function tripal_gene_theme($existing, $type, $theme, $path) {
-  $core_path = drupal_get_path('module', 'tripal_core');
+  $path = drupal_get_path('module', 'tripal_gene');
 
   $items = array(
     'tripal_gene_base' => array(
