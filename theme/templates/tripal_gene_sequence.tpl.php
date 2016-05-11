@@ -32,6 +32,9 @@
   
   
   $feature = $variables['node']->feature;
+  
+  // eksc hack: a desparate move to remove this pane if feature type is not a gene
+  if ($feature->type_id->name != 'gene') return
 
   // Always want to expand joins as arrays regardless of how many matches
   //   there are

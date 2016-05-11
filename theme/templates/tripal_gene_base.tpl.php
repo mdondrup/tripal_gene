@@ -21,6 +21,9 @@ function file2arr($file) {
   return $arr;
 }//file2arr()
 
+// eksc hack: a desparate move to remove this pane if feature type is not a gene
+$feature  = $variables['node']->feature;
+if ($feature->type_id->name != 'gene') return
 
   // Get gene family URL prefix from the view.
   //   Note that the URL takes the gene model name rather than gene family name.
