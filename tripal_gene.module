@@ -139,8 +139,11 @@ SQL;
  * @ingroup tripal_organism
  */
 function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == 'views_exposed_form') { 
+  if ($form_id == 'views_exposed_form' && strstr($form['#id'], 'gene')) { 
     $form['#validate'][] = 'tripal_gene_form_validate'; 
+
+    // Change default value for submit button
+    $form['submit']['#value'] = 'Search';
   }
 
   $form['#method'] = 'post';
@@ -163,6 +166,7 @@ function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
       break;
   } //switch
 }
+
 
 
 /**
