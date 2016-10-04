@@ -57,9 +57,11 @@ if ($feature->type_id->name != 'gene') return
     SELECT * FROM {gene}
     WHERE uniquename = '".$feature->uniquename."'";
   if ($res = chado_query($sql, array())) {
+  
     $row = $res->fetchObject();
-    
-    $gene_family      = $row->gene_family;
+    $gene_family      = 'unknown';
+    if($row->gene_family!=null)
+        $gene_family      = $row->gene_family;
     $gene_description = $row->description;
     $genus            = $row->genus;
     $species          = $row->species;
@@ -252,6 +254,28 @@ if ($feature->type_id->name != 'gene') return
   );
 */
   
+// Gene family rows
+ 
+  if ($gene_family == 'unknown') {
+     $gene_family_html = "<i> not assigned to a gene family</i>";
+  }
+  else {
+    // Link with uniquename for gene feature (assumes 1 gene family per gene model)
+    $url = $gene_family_url . $feature->uniquename;
+    $gene_family_html = "<a href='$url'>$gene_family</a>";
+  }
+ 
+  
+  
+  $rows[] = array(
+    array(
+      'data' => 'Gene Family',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $gene_family_html
+  );
+  
   // Description row
   $rows[] = array(
     array(
@@ -262,24 +286,7 @@ if ($feature->type_id->name != 'gene') return
     $gene_description
   );
   
-  // Gene family rows
-  if ($gene_family == 'unknown') {
-    $gene_family_html = "<i>unknown</i>";
-  }
-  else {
-    // Link with uniquename for gene feature (assumes 1 gene family per gene model)
-    $url = $gene_family_url . $feature->uniquename;
-    $gene_family_html = "<a href='$url'>$gene_family</a>";
-  }
-  $rows[] = array(
-    array(
-      'data' => 'Gene Family',
-      'header' => TRUE,
-      'width' => '20%',
-    ),
-    $gene_family_html
-  );
-  
+
 /* don't know if this is useful; may be only confusing
   // Gene family representative
   $gene_family_representive = $properties['family representative'];
