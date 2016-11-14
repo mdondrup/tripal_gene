@@ -205,6 +205,11 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
       'template' => 'tripal_gene_sequence',
       'path' => "$path/theme/templates",
     ),
+    'tripal_gene_expression' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_gene_expression',
+      'path' => "$path/theme/templates",
+    ),
   );
  
   return $items;
