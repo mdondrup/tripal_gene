@@ -21,9 +21,9 @@ function file2arr($file) {
   return $arr;
 }//file2arr()
 
-// eksc hack: a desparate move to remove this pane if feature type is not a gene
-$feature  = $variables['node']->feature;
-if ($feature->type_id->name != 'gene') return
+  // eksc hack: a desparate move to remove this pane if feature type is not a gene
+  $feature  = $variables['node']->feature;
+  if ($feature->type_id->name != 'gene') return
 
   // Get gene family URL prefix from the view.
   //   Note that the URL takes the gene model name rather than gene family name.
@@ -102,7 +102,7 @@ if ($feature->type_id->name != 'gene') return
   
   
   ///////////////////////   SET UP JBROWSE SECTION   ////////////////////////
-  
+
   $jbrowse_html = '';
   
   // These files link identifiers in Chado to identifers in JBrowse
@@ -180,12 +180,12 @@ if ($feature->type_id->name != 'gene') return
       }//Glycine max
       else {
         $url_source = $data;    
-	if (preg_match("/gbrowse_img/", $url_source)) {
-		$qry_params = "&q=%s&tracks=%s";
-	}
-	else {
-		$qry_params = "&loc=%s&tracks=%s";
-	}
+        if (preg_match("/gbrowse_img/", $url_source)) {
+          $qry_params = "&q=%s&tracks=%s";
+        }
+        else {
+          $qry_params = "&loc=%s&tracks=%s";
+        }
         $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
         $jbrowse_html = "
           </br>   
@@ -254,7 +254,7 @@ if ($feature->type_id->name != 'gene') return
   );
 */
   
-// Gene family rows
+  // Gene family rows
  
   if ($gene_family == 'unknown') {
      $gene_family_html = "<i> not assigned to a gene family</i>";
