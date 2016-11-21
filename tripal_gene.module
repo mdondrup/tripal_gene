@@ -233,44 +233,51 @@ function tripal_gene_form_validate($form, &$form_state) {
 }
   
 
+/**
+  * hook_views_query_alter()
+  *
+  * Modify the query before it is executed.
+  */
 function tripal_gene_views_query_alter(&$view, &$query,&$form_state) {
 //drupal_set_message("QUERY WHERE: <pre>" . print_r($query->where, true) . "</pre>");
 
   // If a term is set in the description field, use it to search OBO terms as well as
   //    description fields
   if ($term = $view->exposed_raw_input['description']) {
-    // Remove descript search from existing filter conditions
-    foreach (array_keys($query->where) as $i) {
-      for ($j=0; $j<count($query->where[$i]['conditions']); $j++) {
-         if ($query->where[$i]['conditions'][$j]['field'] == 'gene.description') {
-           unset($query->where[$i]['conditions'][$j]);
-         }
-       }//each condition clause
+    // Get matching terms and their childern
+    if ($child = getAllRelated($view->exposed_raw_input['description'])) {
+      // Remove description search from existing filter conditions
+      foreach (array_keys($query->where) as $i) {
+        for ($j=0; $j<count($query->where[$i]['conditions']); $j++) {
+           if ($query->where[$i]['conditions'][$j]['field'] == 'gene.description') {
+             unset($query->where[$i]['conditions'][$j]);
+           }
+         }//each condition clause
        
-       // Get rid of this where clause if empty
-       if (count($query->where[$i]['conditions']) == 0) {
-         unset($query->where[$i]);
-       }
-    }//each condition
+         // Get rid of this where clause if empty
+         if (count($query->where[$i]['conditions']) == 0) {
+           unset($query->where[$i]);
+         }
+      }//each condition
 
-    // Create an OR condition between the description LIKE condition and gene name
-    //   IN condition
-    $child = getAllRelated($view->exposed_raw_input['description']);
-    $query->where[] = array(
-      'conditions' => array(
-        0 => array(
-               'field'    => 'gene.description',
-               'value'    => "%$term%",
-               'operator' => 'LIKE',
-             ),
-        1 => array(
-               'field'    => 'gene.name',
-               'value'    => array_keys($child),
-               'operator' => 'IN',
-             ),
-        ),
-      'type' => 'OR',
-    );
+      // Create an OR condition between the description LIKE condition and gene name
+      //   IN condition
+      $query->where[] = array(
+        'conditions' => array(
+          0 => array(
+                 'field'    => 'gene.description',
+                 'value'    => "%$term%",
+                 'operator' => 'LIKE',
+               ),
+          1 => array(
+                 'field'    => 'gene.name',
+                 'value'    => array_keys($child),
+                 'operator' => 'IN',
+               ),
+          ),
+        'type' => 'OR',
+      );
+    }//found OBO terms
   }//search OBO terms for description term
 
 //drupal_set_message("QUERY WHERE: <pre>" . print_r($query->where, true) . "</pre>");
@@ -303,23 +310,27 @@ function getAllRelated($term) {
       }
     }//each trait OBO term
   }
-  
-  $b = array_keys($child_obo_terms);
-  $nql = "
-    SELECT f.name AS fname, c.name AS cname FROM {cvterm} c 
-      INNER JOIN {feature_cvterm} fc ON fc.cvterm_id=c.cvterm_id 
-      INNER JOIN {feature} f ON f.feature_id=fc.feature_id 
-    WHERE c.cvterm_id IN(".implode(',',$b).") 
-          AND f.type_id IN (SELECT x.cvterm_id FROM {cvterm} AS x 
-                            WHERE x.name='gene' AND cv_id =(SELECT cv_id FROM {cv} AS v 
-                                                            WHERE v.name='sequence'))";
 
-  $ree = chado_query($nql);
-  $child_gene = array();
-  $i = 0;
-  foreach($ree as $a) {    
-    $child_gene[$a->fname] = $a->cname;
-    $i++;
+  $child_gene = false;
+  if (count(array_keys($child_obo_terms)) > 0) {
+    $b = array_keys($child_obo_terms);
+    $nql = "
+      SELECT f.name AS fname, c.name AS cname FROM {cvterm} c 
+        INNER JOIN {feature_cvterm} fc ON fc.cvterm_id=c.cvterm_id 
+        INNER JOIN {feature} f ON f.feature_id=fc.feature_id 
+      WHERE c.cvterm_id IN(".implode(',',$b).") 
+            AND f.type_id IN (SELECT x.cvterm_id FROM {cvterm} AS x 
+                              WHERE x.name='gene' AND cv_id =(SELECT cv_id FROM {cv} AS v 
+                                                              WHERE v.name='sequence'))";
+
+    $ree = chado_query($nql);
+    $child_gene = array();
+    $i = 0;
+    foreach($ree as $a) {    
+      $child_gene[$a->fname] = $a->cname;
+      $i++;
+    }
   }
+  
   return $child_gene;
 }//getAllRelated
