@@ -233,3 +233,93 @@ function tripal_gene_form_validate($form, &$form_state) {
 }
   
 
+function tripal_gene_views_query_alter(&$view, &$query,&$form_state) {
+//drupal_set_message("QUERY WHERE: <pre>" . print_r($query->where, true) . "</pre>");
+
+  // If a term is set in the description field, use it to search OBO terms as well as
+  //    description fields
+  if ($term = $view->exposed_raw_input['description']) {
+    // Remove descript search from existing filter conditions
+    foreach (array_keys($query->where) as $i) {
+      for ($j=0; $j<count($query->where[$i]['conditions']); $j++) {
+         if ($query->where[$i]['conditions'][$j]['field'] == 'gene.description') {
+           unset($query->where[$i]['conditions'][$j]);
+         }
+       }//each condition clause
+       
+       // Get rid of this where clause if empty
+       if (count($query->where[$i]['conditions']) == 0) {
+         unset($query->where[$i]);
+       }
+    }//each condition
+
+    // Create an OR condition between the description LIKE condition and gene name
+    //   IN condition
+    $child = getAllRelated($view->exposed_raw_input['description']);
+    $query->where[] = array(
+      'conditions' => array(
+        0 => array(
+               'field'    => 'gene.description',
+               'value'    => "%$term%",
+               'operator' => 'LIKE',
+             ),
+        1 => array(
+               'field'    => 'gene.name',
+               'value'    => array_keys($child),
+               'operator' => 'IN',
+             ),
+        ),
+      'type' => 'OR',
+    );
+  }//search OBO terms for description term
+
+//drupal_set_message("QUERY WHERE: <pre>" . print_r($query->where, true) . "</pre>");
+}//tripal_gene_form_validate
+
+
+function getAllRelated($term) {
+  // Set ontologies to search:
+  $search_ontologies = array();
+  $sql = "
+    SELECT cv_id, name FROM {cv} 
+    WHERE name IN ('biological_process', 'gene_ontology', 'molecular_function','cellular_component')";
+   
+  $results = chado_query($sql);
+  foreach ($results as $r) {
+    $search_ontologies[$r->cv_id] = $r->name;
+  }
+  
+  // Get similar terms
+  $child_obo_terms = array();
+  
+  $obo_terms = ontology_search_setSimilarTerms($term, $search_ontologies, false); 
+  if ($obo_terms) {
+    foreach (array_keys($obo_terms) as $cvterm_id) {
+      //drupal_set_message("am i 0");
+      if ($children = ontology_search_getChild($cvterm_id)) {
+        foreach ($children as $child) {
+          $child_obo_terms[$child['cvterm_id']] = $child['accession'];
+        }
+      }
+    }//each trait OBO term
+  }
+  
+  $b = array_keys($child_obo_terms);
+  $nql = "
+    SELECT f.name AS fname, c.name AS cname FROM {cvterm} c 
+      INNER JOIN {feature_cvterm} fc ON fc.cvterm_id=c.cvterm_id 
+      INNER JOIN {feature} f ON f.feature_id=fc.feature_id 
+    WHERE c.cvterm_id IN(".implode(',',$b).") 
+          AND f.type_id IN (SELECT x.cvterm_id FROM {cvterm} AS x 
+                            WHERE x.name='gene' AND cv_id =(SELECT cv_id FROM {cv} AS v 
+                                                            WHERE v.name='sequence'))";
+
+  $ree = chado_query($nql);
+  $child_gene = array();
+  $i = 0;
+  foreach($ree as $a) {    
+    $child_gene[$a->fname] = $a->cname;
+    $i++;
+  }
+  return $child_gene;
+}//getAllRelated
