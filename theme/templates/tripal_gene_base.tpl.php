@@ -2,7 +2,7 @@
 /**
  * file2arr()
  *
- * Local function to read an association files into an array
+ * Local function to read association files describing JBrowse links into an array
  */
 function file2arr($file) {
   if (!is_file($file) || !is_readable($file)) {
@@ -21,10 +21,12 @@ function file2arr($file) {
   return $arr;
 }//file2arr()
 
-  // eksc hack: a desparate move to remove this pane if feature type is not a gene
+  // Remove this pane if feature type is not a gene
   $feature  = $variables['node']->feature;
   if ($feature->type_id->name != 'gene') return
 
+
+//TODO: this should be a db record
   // Get gene family URL prefix from the view.
   //   Note that the URL takes the gene model name rather than gene family name.
   $gene_family_url = "/chado_gene_phylotree_v2/"; // default
@@ -48,8 +50,7 @@ function file2arr($file) {
   $feature_id = $feature->feature_id;
 //echo "<pre>";var_dump($feature);echo "</pre>";
 
-  // Always want to expand joins as arrays regardless of how many matches
-  //   there are
+  // Always want to expand joins as arrays regardless of how many matches there are
   $table_options = array('return_array' => true);
 
   // Get the overview record for this gene model
@@ -86,7 +87,6 @@ function file2arr($file) {
     $prop = chado_expand_var($prop, 'field', 'featureprop.value');
     $properties[$prop->type_id->name] = $prop->value;
   }
-//echo "<pre>";var_dump($properties);echo "</pre>";
 
   // Expand relationships
   $mRNAs = array();
@@ -98,104 +98,108 @@ function file2arr($file) {
     }
   }
   ksort($mRNAs);
-//echo "<pre>";var_dump($mRNAs);echo "</pre>";
   
   
   ///////////////////////   SET UP JBROWSE SECTION   ////////////////////////
 
   $jbrowse_html = '';
   
-  // These files link identifiers in Chado to identifers in JBrowse
-  $aliasdir    = 'files/aliasfiles/';
-  $data_file   = $aliasdir . 'data_alias.tab';
-  $tracks_file = $aliasdir . 'tracks_alias.tab';
-  $chr_file    = $aliasdir . 'chr_alias.tab';
+  if ($feature->type_id->name == "gene") {
+    $feature = chado_expand_var($feature, 'table', featureloc, $table_options);
+    $srcfeatures =  $feature->featureloc->feature_id;
   
-  // convert alias files to associative arrays:
-  $data_arr   = file2arr($data_file);
-  $tracks_arr = file2arr($tracks_file);
-  $chr_arr    = file2arr($chr_file);
-
-  $key = $feature->organism_id->abbreviation;
-
-  // $data_arr maps the genus and species abbreviation to the dataset name:
-  $data   = $data_arr[$key];
-  
-  // $tracks_arr maps the genus and species abbreviation to the gene model
-  //   track name:
-  $tracks = $tracks_arr[$key];
-  
-  $feature = chado_expand_var($feature, 'table', featureloc, $table_options);
-  $srcfeatures =  $feature->featureloc->feature_id;
-  
-  while (list(, $srcf) = each($srcfeatures)) {
-    // only interested in srcfeature of type 'chromosome'
-//echo "<pre>";var_dump($srcf);echo "</pre>";
-    if ($srcf->srcfeature_id->type_id->name == 'chromosome') {
-      $chrname = $srcf->srcfeature_id->name;
-      $chrlen  = $srcf->srcfeature_id->seqlen;
-      $start   = $srcf->fmin;
-      $end     = $srcf->fmax;
-      break;
-    } 
-    else {
-      continue;
-    }
-  }
-//echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end, tracks=$tracks<br>";
-
-  if (!$chrname || !$chrlen || !$start || !$end) {
-    // Can't create JBrowse object
-    $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
-  }
-  else {
-    // the LIS chr name is mapped to its jbrowse equivalent 
-    $chr = $chr_arr[$chrname];
-    
-    // expand the region by 2k:
-    $start = (($start- 2000) < 0) ? 0 : $start = $start- 2000;
-    $end = (($end + 2000) > $chrlen) ? $chrlen : $end + 2000;
-    $loc = $chr.":".$start."..".$end;
-
-    if (($feature->type_id->name == "gene") && $data && $loc && $tracks) {
-      if ($key ==  "glyma") {   #peu
-        // Glycine max JBrowse instance is at Soybase.org
-        $url_source = $data;
-        $qry_params = "?start=%s;stop=%s;ref=%s;";
-        $url_source = sprintf($url_source.$qry_params, $start, $end, $chr);
-        $jbrowse_html = "
-          <div>
-            <br>
-            If the Soybase.org GBrowse window does not open automatically, click 
-            <a href='$url_source' target=_blank>here</a> to see this gene model
-            on the soybean genome.
-          </div>
-          <br>
-          <script language='javascript'>
-            var re = new RegExp('jbrowse');
-            if (window.location.href.match(re)) {
-              window.onload = function() { window.open('$url_source'); }
-            }
-          </script>";
-      }//Glycine max
+    while (list(, $srcf) = each($srcfeatures)) {
+      // only interested in srcfeature of type 'chromosome' or 'contig'
+      if ($srcf->srcfeature_id->type_id->name == 'chromosome'
+           || $srcf->srcfeature_id->type_id->name == 'contig') {
+        $chrname = $srcf->srcfeature_id->name;
+        $chr_id  = $srcf->srcfeature_id->feature_id;
+        $chrlen  = $srcf->srcfeature_id->seqlen;
+        $start   = $srcf->fmin;
+        $end     = $srcf->fmax;
+        break;
+      } 
       else {
-        $url_source = $data;    
-        if (preg_match("/gbrowse_img/", $url_source)) {
-          $qry_params = "&q=%s&tracks=%s";
-        }
-        else {
-          $qry_params = "&loc=%s&tracks=%s";
-        }
-        $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
-        $jbrowse_html = "
-          </br>   
-          <div>
-            <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
-                    scrolling='yes' src='$url_source' name='frameviewer'></iframe>
-          </div>";
+        continue;
       }
     }
-  }//JBrowse instance exists
+//echo "key=$key, data=$data, chr_id=$chr_id, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end, tracks=$tracks<br>";
+
+    if (!$chrname || !$chrlen || !$start || !$end) {
+      // Can't create JBrowse object
+      $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
+    }
+    else {
+      // Try to get URL from Chado first
+      if ($jbrowse_info = getJBrowseURL($chr_id)) {
+        $url = $jbrowse_info['url'];
+        $chr = $jbrowse_info['chr'];
+      }
+      else {
+        // deprecated: construct URL from alias files
+      
+        // These files link identifiers in Chado to identifers in JBrowse
+        $aliasdir    = 'files/aliasfiles/';
+        $data_file   = $aliasdir . 'data_alias.tab';
+        $tracks_file = $aliasdir . 'tracks_alias.tab';
+        $chr_file    = $aliasdir . 'chr_alias.tab';
+  
+        // convert alias files to associative arrays:
+        $data_arr   = file2arr($data_file);
+        $tracks_arr = file2arr($tracks_file);
+        $chr_arr    = file2arr($chr_file);
+
+        $key = $feature->organism_id->abbreviation;
+
+        // $data_arr maps the genus and species abbreviation to the dataset name:
+        $data   = $data_arr[$key];
+  
+        // $tracks_arr maps the genus and species abbreviation to the gene model track name:
+        $tracks = $tracks_arr[$key];
+        
+        // The base JBrowse URL
+        $url = "$data&tracks=$tracks";
+  
+        // the LIS chr name is mapped to its jbrowse equivalent 
+        $chr = $chr_arr[$chrname];
+      }//URL from files (deprecated)
+    
+      // expand the region by 2k:
+      $start = (($start- 2000) < 0) ? 0 : $start = $start- 2000;
+      $end = (($end + 2000) > $chrlen) ? $chrlen : $end + 2000;
+      $loc = $chr.":".$start."..".$end;
+
+      if ($url && $loc) {
+        if ($key ==  "glyma") {   #peu
+          // Glycine max JBrowse instance is at Soybase.org
+          $url_source = "$url&loc=$loc";
+          $jbrowse_html = "
+            <div>
+              <br>
+              If the Soybase.org GBrowse window does not open automatically, click 
+              <a href='$url_source' target=_blank>here</a> to see this gene model
+              on the soybean genome.
+            </div>
+            <br>
+            <script language='javascript'>
+              var re = new RegExp('jbrowse');
+              if (window.location.href.match(re)) {
+                window.onload = function() { window.open('$url_source'); }
+              }
+            </script>";
+        }//Glycine max
+        else {
+          $url_source = "$url&loc=$loc";    
+          $jbrowse_html = "
+            </br>   
+            <div>
+              <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
+                      scrolling='yes' src='$url_source' name='frameviewer'></iframe>
+            </div>";
+        }
+      }//not Glycine max
+    }//JBrowse instance exists
+  }//feature is a gene
 
   
   ///////////////////////   PREPARE THE RECORD TABLE   ////////////////////////
