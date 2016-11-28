@@ -240,7 +240,6 @@ function tripal_gene_views_api() {
 function tripal_gene_views_query_alter(&$view, &$query) {
   // If a term is set in the description field, use it to search OBO terms as well as
   //    description fields
-drupal_set_message("tripal_gene_views_query_alter():<pre>".print_r($view->exposed_raw_input, true) . "</pre>");
   if (isset($view->exposed_raw_input['description']) && ($term = $view->exposed_raw_input['description'])) {
     // Get matching terms and their childern
     if ($child = getAllRelated($view->exposed_raw_input['description'])) {
