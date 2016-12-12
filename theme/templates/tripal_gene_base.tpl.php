@@ -58,20 +58,21 @@ function file2arr($file) {
     SELECT * FROM {gene}
     WHERE uniquename = '".$feature->uniquename."'";
   if ($res = chado_query($sql, array())) {
-  
     $row = $res->fetchObject();
     $gene_family      = 'unknown';
-    if($row->gene_family!=null)
+    if ($row->gene_family != null)
         $gene_family      = $row->gene_family;
     $gene_description = $row->description;
     $genus            = $row->genus;
     $species          = $row->species;
+    $domains          = $row->domains;
   }
   else {
     $gene_family      = 'unknown';
     $gene_description = 'None given.';
     $genus            = 'unknown';
     $species          = 'unknown';
+    $domains          = 'unknown';
   }
 
   // Get gene model build (represented as an analysis record)
@@ -98,6 +99,18 @@ function file2arr($file) {
     }
   }
   ksort($mRNAs);
+  
+  // Created linked domain names
+  $doms = explode(' ', $domains);
+  $links = array();
+  foreach ($doms as $d) {
+//eksc- not clear how these links should be formed. Some work this way, some don't.
+//      do the protein domain features need to be synced?
+//   $links[] = "<a href='/feature/consensus/consensus/polypeptide_domain/$d'>$d</a>";
+//for now, just do this:
+    $links[] = $d;
+  }
+  $domain_html = implode(', ', $links);
   
   
   ///////////////////////   SET UP JBROWSE SECTION   ////////////////////////
@@ -268,9 +281,7 @@ function file2arr($file) {
     $url = $gene_family_url . $feature->uniquename;
     $gene_family_html = "<a href='$url'>$gene_family</a>";
   }
- 
-  
-  
+
   $rows[] = array(
     array(
       'data' => 'Gene Family',
@@ -289,25 +300,20 @@ function file2arr($file) {
     ),
     $gene_description
   );
-  
 
-/* don't know if this is useful; may be only confusing
-  // Gene family representative
-  $gene_family_representive = $properties['family representative'];
+  // Protein domains
   $rows[] = array(
     array(
-      'data' => 'Gene Family Representative',
-      'header' => TRUE,
-      'width' => '20%',
+      'data'   => 'Protein domains',
+      'header' => true,
+      'width'  => '20%', 
     ),
-    $gene_family_representive
+    $domain_html,
   );
-*/
-
+  
   // mRNA(s)
   $mRNA_html = '';
   foreach (array_keys($mRNAs) as $mRNA_name) {
-//    $url = "feature/$genus/$species/mRNA/" . $mRNAs[$mRNA_name];
     $url = "?pane=Sequences#$mRNA_name";
     $mRNA_html .= "<a href='$url'>$mRNA_name</a><br>";
   }
@@ -319,7 +325,6 @@ function file2arr($file) {
     ),
     $mRNA_html
   );
-  
   
   // the $table array contains the headers and rows array as well as other
   // options for controlling the display of the table.  Additional
