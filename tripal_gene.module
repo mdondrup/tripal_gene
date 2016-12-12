@@ -6,6 +6,11 @@
  * Set the permission types that this module uses. Essentially we
  * want permissions that protect creation, editing and deleting of
  * chado data objects
+ *
+ * Uses Drupal module Light Shop https://www.drupal.org/project/lightshop to create 
+ * gene "basket" at top of search form.
+ *   To modify: /admin/structure/blocks
+ *
  * @ingroup tripal_gene
  *
  */
