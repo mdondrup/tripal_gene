@@ -298,7 +298,10 @@ function file2arr($file) {
       'header' => TRUE,
       'width' => '20%',
     ),
-    $gene_description
+    array(
+      'data' => $gene_description,
+      'id' => 'gene-description' /* this id is used by the interpro linkout */
+    )
   );
 
   // Protein domains
@@ -350,3 +353,8 @@ function file2arr($file) {
   if ($jbrowse_html) {
     print $jbrowse_html;
   }
+
+drupal_add_js(
+    path_to_theme() . '/theme/js/interpro-linkout.js',
+    array('type' => 'file', 'group' => JS_DEFAULT)
+);
