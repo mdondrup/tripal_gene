@@ -6,97 +6,17 @@
  * Set the permission types that this module uses. Essentially we
  * want permissions that protect creation, editing and deleting of
  * chado data objects
+ *
+ * Uses Drupal module Light Shop https://www.drupal.org/project/lightshop to create 
+ * gene "basket" at top of search form.
+ *   To modify: /admin/structure/blocks
+ *
  * @ingroup tripal_gene
  *
  */
 
 require_once 'includes/tripal_gene.admin.inc';
 require_once 'includes/tripal_gene.chado_node.inc';
-
-function tripal_gene_permission() {
-  return array(
-    'access chado_gene content' => array(
-      'title' => t('View Genes'),
-      'description' => t('Allow users to view gene pages.'),
-    ),
-    'create chado_gene content' => array(
-      'title' => t('Create Gene'),
-      'description' => t('Allow users to create new gene pages.'),
-    ),
-    'delete chado_gene content' => array(
-      'title' => t('Delete Gene'),
-      'description' => t('Allow users to delete gene pages.'),
-    ),
-    'edit chado_gene content' => array(
-      'title' => t('Edit Gene'),
-      'description' => t('Allow users to edit gene pages.'),
-    ),
-    'administer tripal gene' => array(
-      'title' => t('Administer Gene'),
-      'description' => t('Allow users to administer all genes.'),
-    ),
-  );
-}
-
-
-/**
- * Implements hook_menu().
- * Menu items are automatically added for the new node types created
- * by this module to the 'Create Content' Navigation menu item.  This function
- * adds more menu items needed for this module.
- *
- * @ingroup tripal_gene
- */
-function tripal_gene_menu() {
-  $items = array();
-  // the administative settings menu
-  $items['admin/tripal/chado/tripal_gene'] = array(
-    'title' => 'Gene Search',
-    'description' => 'Gene search allows retrieval of gene information.',
-    'page callback' => 'tripal_gene_admin_gene_view',
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-
-  $items['admin/tripal/chado/tripal_gene/help'] = array(
-    'title' => 'Help',
-    'description' => "Help for using the gene module",
-    'page callback' => 'theme',
-    'page arguments' => array('tripal_gene_help'),
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 10
-  );
-
-
-  $items['admin/tripal/chado/tripal_gene/views/enable'] = array(
-    'title' => 'Enable Gene Administrative View',
-    'page callback' => 'tripal_enable_view',
-    'page arguments' => array('tripal_gene_admin_gene', 'admin/tripal/chado/tripal_gene'),
-    'access arguments' => array('administer tripal gene'),
-    'type' => MENU_CALLBACK,
-  );  
-  return $items;
-}
-
-
-/**
- * Implements hook_views_api().
- *
- * Essentially this hook tells drupal that there is views support for
- *  for this module which then includes tripal_db.views.inc where all the
- *  views integration code is
- *
- * @ingroup tripal_organism
- */
-function tripal_gene_views_api() {
-  $path = drupal_get_path('module', 'tripal_gene');
-  return array(
-    'api' => 3.0,
-    'path' => $path . '/views',
-  );
-}
-
 
 /**
  * tripal_gene_add_all_handler()
@@ -168,6 +88,22 @@ function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
 }
 
 
+/**
+  * Form validator for search form.
+  *
+  * Use this to trim whitespace from text fields.
+  */
+function tripal_gene_form_validate($form, &$form_state) { 
+  if (isset($form_state['values']['domains']))
+    $form_state['values']['domains']     = trim($form_state['values']['domains']); 
+  if (isset($form_state['values']['description']))
+    $form_state['values']['description'] = trim($form_state['values']['description']); 
+  if (isset($form_state['values']['gene_family']))
+    $form_state['values']['gene_family'] = trim($form_state['values']['gene_family']); 
+  if (isset($form_state['values']['name']))
+    $form_state['values']['name']        = trim($form_state['values']['name']); 
+}
+  
 
 /**
  * Implements hook_help().
@@ -179,6 +115,73 @@ function tripal_gene_help ($path, $arg) {
   if ($path == 'admin/help#tripal_gene') {
     return theme('tripal_gene_help', array());
   }
+}
+
+
+/**
+ * Implements hook_menu().
+ * Menu items are automatically added for the new node types created
+ * by this module to the 'Create Content' Navigation menu item.  This function
+ * adds more menu items needed for this module.
+ *
+ * @ingroup tripal_gene
+ */
+function tripal_gene_menu() {
+  $items = array();
+  // the administative settings menu
+  $items['admin/tripal/chado/tripal_gene'] = array(
+    'title' => 'Gene Search',
+    'description' => 'Gene search allows retrieval of gene information.',
+    'page callback' => 'tripal_gene_admin_gene_view',
+    'access arguments' => array('administer tripal gene'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/tripal/chado/tripal_gene/help'] = array(
+    'title' => 'Help',
+    'description' => "Help for using the gene module",
+    'page callback' => 'theme',
+    'page arguments' => array('tripal_gene_help'),
+    'access arguments' => array('administer tripal gene'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10
+  );
+
+
+  $items['admin/tripal/chado/tripal_gene/views/enable'] = array(
+    'title' => 'Enable Gene Administrative View',
+    'page callback' => 'tripal_enable_view',
+    'page arguments' => array('tripal_gene_admin_gene', 'admin/tripal/chado/tripal_gene'),
+    'access arguments' => array('administer tripal gene'),
+    'type' => MENU_CALLBACK,
+  );  
+  return $items;
+}
+
+
+function tripal_gene_permission() {
+  return array(
+    'access chado_gene content' => array(
+      'title' => t('View Genes'),
+      'description' => t('Allow users to view gene pages.'),
+    ),
+    'create chado_gene content' => array(
+      'title' => t('Create Gene'),
+      'description' => t('Allow users to create new gene pages.'),
+    ),
+    'delete chado_gene content' => array(
+      'title' => t('Delete Gene'),
+      'description' => t('Allow users to delete gene pages.'),
+    ),
+    'edit chado_gene content' => array(
+      'title' => t('Edit Gene'),
+      'description' => t('Allow users to edit gene pages.'),
+    ),
+    'administer tripal gene' => array(
+      'title' => t('Administer Gene'),
+      'description' => t('Allow users to administer all genes.'),
+    ),
+  );
 }
 
 
@@ -217,33 +220,32 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
 
 
 /**
-  * Form validator for search form.
-  *
-  * Use this to trim whitespace from text fields.
-  */
-function tripal_gene_form_validate($form, &$form_state) { 
-  if (isset($form_state['values']['domains']))
-    $form_state['values']['domains']     = trim($form_state['values']['domains']); 
-  if (isset($form_state['values']['description']))
-    $form_state['values']['description'] = trim($form_state['values']['description']); 
-  if (isset($form_state['values']['gene_family']))
-    $form_state['values']['gene_family'] = trim($form_state['values']['gene_family']); 
-  if (isset($form_state['values']['name']))
-    $form_state['values']['name']        = trim($form_state['values']['name']); 
+ * Implements hook_views_api().
+ *
+ * Essentially this hook tells drupal that there is views support for
+ *  for this module which then includes tripal_db.views.inc where all the
+ *  views integration code is
+ *
+ * @ingroup tripal_organism
+ */
+function tripal_gene_views_api() {
+  $path = drupal_get_path('module', 'tripal_gene');
+  return array(
+    'api' => 3.0,
+    'path' => $path . '/views',
+  );
 }
-  
+
 
 /**
   * hook_views_query_alter()
   *
   * Modify the query before it is executed.
   */
-function tripal_gene_views_query_alter(&$view, &$query,&$form_state) {
-//drupal_set_message("QUERY WHERE: <pre>" . print_r($query->where, true) . "</pre>");
-
+function tripal_gene_views_query_alter(&$view, &$query) {
   // If a term is set in the description field, use it to search OBO terms as well as
   //    description fields
-  if ($term = $view->exposed_raw_input['description']) {
+  if (isset($view->exposed_raw_input['description']) && ($term = $view->exposed_raw_input['description'])) {
     // Get matching terms and their childern
     if ($child = getAllRelated($view->exposed_raw_input['description'])) {
       // Remove description search from existing filter conditions
@@ -279,8 +281,6 @@ function tripal_gene_views_query_alter(&$view, &$query,&$form_state) {
       );
     }//found OBO terms
   }//search OBO terms for description term
-
-//drupal_set_message("QUERY WHERE: <pre>" . print_r($query->where, true) . "</pre>");
 }//tripal_gene_form_validate
 
 
@@ -334,3 +334,23 @@ function getAllRelated($term) {
   
   return $child_gene;
 }//getAllRelated
+
+
+function getJBrowseURL($chr_id) {
+  if (!$chr_id) {return false;}
+  
+  $sql = "
+    SELECT f.name, x.accession, db.urlprefix FROM {feature} f
+      INNER JOIN {feature_dbxref} fx ON fx.feature_id=f.feature_id
+      INNER JOIN {dbxref} x ON x.dbxref_id=fx.dbxref_id
+      INNER JOIN {db} ON db.db_id=x.db_id
+    WHERE LOWER(db.name) LIKE '%jbrowse%'
+          AND f.feature_id=$chr_id";
+//echo "$sql<br>";
+  $result = chado_query($sql);
+  foreach ($result as $r) {
+    return array('chr' => $r->accession, 'url' => $r->urlprefix);
+  }
+            
+  return false;
+}
