@@ -224,6 +224,9 @@ function tripal_gene_add_domainless_mview(){
         'gene_indx2' => array(
             0 => 'name',
         ),
+        'gene_indx3' => array(
+            0 => 'description',
+        ),
     ),
   );
   
@@ -398,6 +401,9 @@ function tripal_gene_add_mview(){
       ),
       'gene_indx2' => array(
         0 => 'name',
+      ),
+      'gene_indx3' => array(
+          0 => 'description',
       ),
     ),
   );
