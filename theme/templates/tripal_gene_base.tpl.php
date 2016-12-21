@@ -74,7 +74,35 @@ function file2arr($file) {
     $species          = 'unknown';
     $domains          = 'unknown';
   }
-
+ // terms attached to the gene
+   $term =$feature->name;
+      $sq = "
+    SELECT c.name as cname, f.name as fname, x.accession as accession,c.cv_id as cv_id FROM {cvterm} as c 
+    inner join {dbxref} as x on x.dbxref_id=c.dbxref_id 
+    inner join {feature_cvterm} as fc on fc.cvterm_id=c.cvterm_id
+    inner join {feature} f on f.feature_id=fc.feature_id 
+    where f.name='".$term."'";
+  if ($res = chado_query($sq, array())) {
+   $myhashmap=array();
+    $myhashmap['20']='BO';
+    $myhashmap['21']='MO';
+    $myhashmap['22']='ccv';
+    $ans="";
+  while($row = $res->fetchObject())
+    
+    {
+     $ans=$ans.$row->cname;
+     $ans= $ans. " (";
+     $ans= $ans.$myhashmap[$row->cv_id];
+     $ans= $ans. ": ";
+     $ans= $ans.$row->accession;
+     $ans= $ans. " )";
+      $ans= $ans. ", ";
+    }
+ }
+  else {
+     //drupal_set_message("no  results");
+  }
   // Get gene model build (represented as an analysis record)
   $feature = chado_expand_var($feature, 'table', 'analysisfeature', $table_options);
   $analysis = $feature->analysisfeature[0]->analysis_id;
@@ -274,7 +302,7 @@ function file2arr($file) {
   // Gene family rows
  
   if ($gene_family == 'unknown') {
-     $gene_family_html = "<i> not assigned to a gene family</i>";
+     $gene_family_html = "<b> not assigned to a gene family</b>";
   }
   else {
     // Link with uniquename for gene feature (assumes 1 gene family per gene model)
@@ -290,7 +318,18 @@ function file2arr($file) {
     ),
     $gene_family_html
   );
-  
+   //tagged terms only if they exists.
+  if($ans !=null)
+  {
+   $rows[] = array(
+    array(
+      'data' => 'Tagged terms',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $ans
+  );
+}
   // Description row
   $rows[] = array(
     array(
