@@ -300,7 +300,7 @@ function file2arr($file) {
     ),
     array(
       'data' => $gene_description,
-      'id' => 'gene-description' /* this id is used by the interpro linkout */
+      'id' => 'gene-description' /* this id is used by the interpro/geneontology linkout */
     )
   );
 
@@ -356,5 +356,9 @@ function file2arr($file) {
 
 drupal_add_js(
     path_to_theme() . '/theme/js/interpro-linkout.js',
+    array('type' => 'file', 'group' => JS_DEFAULT)
+);
+drupal_add_js(
+    path_to_theme() . '/theme/js/geneontology-linkout.js',
     array('type' => 'file', 'group' => JS_DEFAULT)
 );
