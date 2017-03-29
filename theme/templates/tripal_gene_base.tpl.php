@@ -311,7 +311,7 @@ function file2arr($file) {
   // Gene family rows
  
   if ($gene_family == 'unknown') {
-     $gene_family_html = "<i> not assigned to a gene family</i>";
+     $gene_family_html = "<b> not assigned to a gene family</b>";
   }
   else {
     // Link with uniquename for gene feature (assumes 1 gene family per gene model)
@@ -327,7 +327,18 @@ function file2arr($file) {
     ),
     $gene_family_html
   );
-  
+   //tagged terms only if they exists.
+  if($ans !=null)
+  {
+   $rows[] = array(
+    array(
+      'data' => 'Tagged terms',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $ans
+  );
+}
   // Description row
   $rows[] = array(
     array(
@@ -335,7 +346,10 @@ function file2arr($file) {
       'header' => TRUE,
       'width' => '20%',
     ),
-    $gene_description
+    array(
+      'data' => $gene_description,
+      'id' => 'gene-description' /* this id is used by the interpro/geneontology linkout */
+    )
   );
 
   // Protein domains
@@ -387,3 +401,12 @@ function file2arr($file) {
   if ($jbrowse_html) {
     print $jbrowse_html;
   }
+
+drupal_add_js(
+    path_to_theme() . '/theme/js/interpro-linkout.js',
+    array('type' => 'file', 'group' => JS_DEFAULT)
+);
+drupal_add_js(
+    path_to_theme() . '/theme/js/geneontology-linkout.js',
+    array('type' => 'file', 'group' => JS_DEFAULT)
+);
