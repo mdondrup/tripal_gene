@@ -46,12 +46,12 @@ function file2arr($file) {
 
   drupal_add_css($my_path . '/theme/css/basket.css');
 
+  // So that chado variables are returned in an array
+  $options = array('return_array' => 1);
+
   $feature  = $variables['node']->feature;  
   $feature_id = $feature->feature_id;
 //echo "<pre>";var_dump($feature);echo "</pre>";
-
-  // Always want to expand joins as arrays regardless of how many matches there are
-  $table_options = array('return_array' => true);
 
   // Get the overview record for this gene model
   $sql = "
@@ -75,14 +75,44 @@ function file2arr($file) {
     $domains          = 'unknown';
   }
 
-  // Get gene model build (represented as an analysis record)
-  $feature = chado_expand_var($feature, 'table', 'analysisfeature', $table_options);
-  $analysis = $feature->analysisfeature[0]->analysis_id;
-  $gene_model_build = $analysis->name;
+  // Get assembly version and gene model build (represented as analysis records)
+  $gene_set = 'unknown';
+  $assembly = 'unknown';
+  $feature = chado_expand_var($feature, 'table', 'analysisfeature', $options);
+//echo "<pre>";var_dump($feature->analysisfeature);echo "</pre>";
+  foreach ($feature->analysisfeature as $af) {
+    $af = chado_expand_var($af, 'table', 'analysisprop', $options);
+//echo "ONE ANALYSIS:<pre>";var_dump($af->analysis_id);echo "</pre>";
+    if (is_array($af->analysis_id->analysisprop)) {
+      foreach ($af->analysis_id->analysisprop as $ap) {
+//echo "ONE ANALYSISPROP IN ARRAY:<pre>";var_dump($ap);echo "</pre>";
+//echo "analysisprop type: [" . $ap->type_id->name . "]<br>";
+//echo "analysisprop value: [" . $ap->value . "]<br>";
+        if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'genome assembly') {
+          $assembly = $af->analysis_id->name;
+        }
+        else if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'gene model set') {
+          $gene_set = $af->analysis_id->name;
+        }
+      }
+    }
+    else {
+      $ap = $af->analysis_id->analysisprop;
+//echo "ONE ANALYSISPROP:<pre>";var_dump($ap);echo "</pre>";
+//echo "analysisprop type: [" . $ap->type_id->name . "]<br>";
+//echo "analysisprop value: [" . $ap->value . "]<br>";
+      if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'genome assembly') {
+        $assembly = $af->analysis_id->name;
+      }
+      else if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'gene model set') {
+        $gene_set = $af->analysis_id->name;
+      }
+    }
+  }
 
   // Get properties
   $properties = array();
-  $feature = chado_expand_var($feature, 'table', 'featureprop', $table_options);
+  $feature = chado_expand_var($feature, 'table', 'featureprop', $options);
   $props = $feature->featureprop;
   foreach ($props as $prop){
     $prop = chado_expand_var($prop, 'field', 'featureprop.value');
@@ -91,7 +121,7 @@ function file2arr($file) {
 
   // Expand relationships
   $mRNAs = array();
-  $feature = chado_expand_var($feature, 'table', 'feature_relationship', $table_options);
+  $feature = chado_expand_var($feature, 'table', 'feature_relationship', $options);
   $related = $feature->feature_relationship->object_id;
   foreach ($related as $relative) {
     if ($relative->subject_id->type_id->name == 'mRNA') {
@@ -118,7 +148,7 @@ function file2arr($file) {
   $jbrowse_html = '';
   
   if ($feature->type_id->name == "gene") {
-    $feature = chado_expand_var($feature, 'table', featureloc, $table_options);
+    $feature = chado_expand_var($feature, 'table', featureloc, $options);
     $srcfeatures =  $feature->featureloc->feature_id;
   
     while (list(, $srcf) = each($srcfeatures)) {
@@ -259,17 +289,24 @@ function file2arr($file) {
     $organism
   );
 
-/*TODO: uncomment when build analysis record is associated with gene models
-  // Build (analysis)
+  // Assembly version
+  $rows[] = array(
+    array(
+      'data' => 'Assembly version',
+      'header' => TRUE,
+    ),
+    $assembly
+  );
+  
+  // Gene models set
   $rows[] = array(
     array(
       'data' => 'Gene Model Build',
       'header' => TRUE,
       'width' => '20%',
     ),
-    $gene_model_build
+    $gene_set
   );
-*/
   
   // Gene family rows
  
