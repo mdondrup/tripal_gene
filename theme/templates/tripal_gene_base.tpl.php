@@ -79,19 +79,21 @@ function file2arr($file) {
   $gene_set = 'unknown';
   $assembly = 'unknown';
   $feature = chado_expand_var($feature, 'table', 'analysisfeature', $options);
+//echo "FOUND " . count($feature->analysisfeature) . " analysisfeature<br>";
 //echo "<pre>";var_dump($feature->analysisfeature);echo "</pre>";
   foreach ($feature->analysisfeature as $af) {
     $af = chado_expand_var($af, 'table', 'analysisprop', $options);
 //echo "ONE ANALYSIS:<pre>";var_dump($af->analysis_id);echo "</pre>";
+//echo "Check analysis " . $af->analysis_id->name . "(" . $af->analysis_id->analysis_id . ")<br>";
     if (is_array($af->analysis_id->analysisprop)) {
       foreach ($af->analysis_id->analysisprop as $ap) {
 //echo "ONE ANALYSISPROP IN ARRAY:<pre>";var_dump($ap);echo "</pre>";
 //echo "analysisprop type: [" . $ap->type_id->name . "]<br>";
-//echo "analysisprop value: [" . $ap->value . "]<br>";
-        if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'genome assembly') {
+//echo "analysisprop value: [" . $ap->value . "]<br><br>";
+        if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
           $assembly = $af->analysis_id->name;
         }
-        else if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'gene model set') {
+        else if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
           $gene_set = $af->analysis_id->name;
         }
       }
@@ -100,11 +102,11 @@ function file2arr($file) {
       $ap = $af->analysis_id->analysisprop;
 //echo "ONE ANALYSISPROP:<pre>";var_dump($ap);echo "</pre>";
 //echo "analysisprop type: [" . $ap->type_id->name . "]<br>";
-//echo "analysisprop value: [" . $ap->value . "]<br>";
-      if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'genome assembly') {
+//echo "analysisprop value: [" . $ap->value . "]<br><br>";
+      if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
         $assembly = $af->analysis_id->name;
       }
-      else if ($ap->type_id->name == 'Analysis Type' && $ap->value == 'gene model set') {
+      else if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
         $gene_set = $af->analysis_id->name;
       }
     }
