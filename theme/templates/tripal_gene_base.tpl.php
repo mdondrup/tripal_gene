@@ -1,26 +1,4 @@
 <?php
-/**
- * file2arr()
- *
- * Local function to read association files describing JBrowse links into an array
- */
-function file2arr($file) {
-  if (!is_file($file) || !is_readable($file)) {
-    print "Alias file '$file' not found in ".getcwd() .". Please create alias file.</br>";
-    return false;
-  }
-  $arr = [];
-  $fp = fopen($file,"r");
-  while (false != ($line = fgets($fp,4096))) {
-      if (!preg_match("/.+\s.+/",$line,$match)) continue;
-      $tmp = preg_split("/\s/",trim($line));
-      $arr[$tmp[0]] = $tmp[1];
-  }
-  fclose ($fp);
-
-  return $arr;
-}//file2arr()
-
   // Remove this pane if feature type is not a gene
   $feature  = $variables['node']->feature;
   if ($feature->type_id->name != 'gene') return
@@ -79,17 +57,10 @@ function file2arr($file) {
   $gene_set = 'unknown';
   $assembly = 'unknown';
   $feature = chado_expand_var($feature, 'table', 'analysisfeature', $options);
-//echo "FOUND " . count($feature->analysisfeature) . " analysisfeature<br>";
-//echo "<pre>";var_dump($feature->analysisfeature);echo "</pre>";
   foreach ($feature->analysisfeature as $af) {
     $af = chado_expand_var($af, 'table', 'analysisprop', $options);
-//echo "ONE ANALYSIS:<pre>";var_dump($af->analysis_id);echo "</pre>";
-//echo "Check analysis " . $af->analysis_id->name . "(" . $af->analysis_id->analysis_id . ")<br>";
     if (is_array($af->analysis_id->analysisprop)) {
       foreach ($af->analysis_id->analysisprop as $ap) {
-//echo "ONE ANALYSISPROP IN ARRAY:<pre>";var_dump($ap);echo "</pre>";
-//echo "analysisprop type: [" . $ap->type_id->name . "]<br>";
-//echo "analysisprop value: [" . $ap->value . "]<br><br>";
         if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
           $assembly = $af->analysis_id->name;
         }
@@ -100,9 +71,6 @@ function file2arr($file) {
     }
     else {
       $ap = $af->analysis_id->analysisprop;
-//echo "ONE ANALYSISPROP:<pre>";var_dump($ap);echo "</pre>";
-//echo "analysisprop type: [" . $ap->type_id->name . "]<br>";
-//echo "analysisprop value: [" . $ap->value . "]<br><br>";
       if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
         $assembly = $af->analysis_id->name;
       }
@@ -145,104 +113,28 @@ function file2arr($file) {
   $domain_html = implode(', ', $links);
   
   
-  ///////////////////////   SET UP JBROWSE SECTION   ////////////////////////
+  ///////////////////////   SET UP JBROWSE   ////////////////////////
 
   $jbrowse_html = '';
   
   if ($feature->type_id->name == "gene") {
-    $feature = chado_expand_var($feature, 'table', featureloc, $options);
-    $srcfeatures =  $feature->featureloc->feature_id;
-  
-    while (list(, $srcf) = each($srcfeatures)) {
-      // only interested in srcfeature of type 'chromosome' or 'contig'
-      if ($srcf->srcfeature_id->type_id->name == 'chromosome'
-           || $srcf->srcfeature_id->type_id->name == 'contig') {
-        $chrname = $srcf->srcfeature_id->name;
-        $chr_id  = $srcf->srcfeature_id->feature_id;
-        $chrlen  = $srcf->srcfeature_id->seqlen;
-        $start   = $srcf->fmin;
-        $end     = $srcf->fmax;
-        break;
-      } 
-      else {
-        continue;
-      }
-    }
-//echo "key=$key, data=$data, chr_id=$chr_id, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end, tracks=$tracks<br>";
-
-    if (!$chrname || !$chrlen || !$start || !$end) {
-      // Can't create JBrowse object
+    // Try to get JBrowse URL from Chado
+    if (!($jbrowse_info = getJBrowseURL($feature_id))) {
       $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
     }
     else {
-      // Try to get URL from Chado first
-      if ($jbrowse_info = getJBrowseURL($chr_id)) {
-        $url = $jbrowse_info['url'];
-        $chr = $jbrowse_info['chr'];
-      }
-      else {
-        // deprecated: construct URL from alias files
-      
-        // These files link identifiers in Chado to identifers in JBrowse
-        $aliasdir    = 'files/aliasfiles/';
-        $data_file   = $aliasdir . 'data_alias.tab';
-        $tracks_file = $aliasdir . 'tracks_alias.tab';
-        $chr_file    = $aliasdir . 'chr_alias.tab';
-  
-        // convert alias files to associative arrays:
-        $data_arr   = file2arr($data_file);
-        $tracks_arr = file2arr($tracks_file);
-        $chr_arr    = file2arr($chr_file);
-
-        $key = $feature->organism_id->abbreviation;
-
-        // $data_arr maps the genus and species abbreviation to the dataset name:
-        $data   = $data_arr[$key];
-  
-        // $tracks_arr maps the genus and species abbreviation to the gene model track name:
-        $tracks = $tracks_arr[$key];
-        
-        // The base JBrowse URL
-        $url = "$data&tracks=$tracks";
-  
-        // the LIS chr name is mapped to its jbrowse equivalent 
-        $chr = $chr_arr[$chrname];
-      }//URL from files (deprecated)
+      $jbrowse_url = $jbrowse_info['url'] 
+               . '&loc='
+               . $jbrowse_info['chr'] . ':'
+               . $jbrowse_info['start'] . '..'
+               . $jbrowse_info['stop'];
     
-      // expand the region by 2k:
-      $start = (($start- 2000) < 0) ? 0 : $start = $start- 2000;
-      $end = (($end + 2000) > $chrlen) ? $chrlen : $end + 2000;
-      $loc = $chr.":".$start."..".$end;
-
-      if ($url && $loc) {
-        if ($key ==  "glyma") {   #peu
-          // Glycine max JBrowse instance is at Soybase.org
-          $url_source = "$url&loc=$loc";
-          $jbrowse_html = "
-            <div>
-              <br>
-              If the Soybase.org GBrowse window does not open automatically, click 
-              <a href='$url_source' target=_blank>here</a> to see this gene model
-              on the soybean genome.
-            </div>
-            <br>
-            <script language='javascript'>
-              var re = new RegExp('jbrowse');
-              if (window.location.href.match(re)) {
-                window.onload = function() { window.open('$url_source'); }
-              }
-            </script>";
-        }//Glycine max
-        else {
-          $url_source = "$url&loc=$loc";    
-          $jbrowse_html = "
-            </br>   
-            <div>
-              <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
-                      scrolling='yes' src='$url_source' name='frameviewer'></iframe>
-            </div>";
-        }
-      }//not Glycine max
+      $jbrowse_html = "
+        </br>   
+        <div>
+          <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
+                  scrolling='yes' src='$jbrowse_url' name='frameviewer'></iframe>
+        </div>";
     }//JBrowse instance exists
   }//feature is a gene
 
