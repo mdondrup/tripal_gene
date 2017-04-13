@@ -1,7 +1,7 @@
 <?php
   // Remove this pane if feature type is not a gene
   $feature  = $variables['node']->feature;
-  if ($feature->type_id->name != 'gene') return
+  if ($feature->type_id->name != 'gene') return;
 
 
 //TODO: this should be a db record
@@ -117,6 +117,9 @@
 
   $jbrowse_html = '';
   
+  // Temporary hack: don't show if organism is glyma
+  if ($feature->organism_id->abbreviation != 'glyma') {
+  
   if ($feature->type_id->name == "gene") {
     // Try to get JBrowse URL from Chado
     if (!($jbrowse_info = getJBrowseURL($feature_id))) {
@@ -137,7 +140,8 @@
         </div>";
     }//JBrowse instance exists
   }//feature is a gene
-
+  }
+  
   
   ///////////////////////   PREPARE THE RECORD TABLE   ////////////////////////
   
