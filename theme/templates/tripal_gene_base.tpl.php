@@ -118,30 +118,35 @@
   $jbrowse_html = '';
   
   // Temporary hack: don't show if organism is glyma
-  if ($feature->organism_id->abbreviation != 'glyma') {
-  
-  if ($feature->type_id->name == "gene") {
-    // Try to get JBrowse URL from Chado
-    if (!($jbrowse_info = getJBrowseURL($feature_id))) {
-      $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
-    }
-    else {
-      $jbrowse_url = $jbrowse_info['url'] 
-               . '&loc='
-               . $jbrowse_info['chr'] . ':'
-               . $jbrowse_info['start'] . '..'
-               . $jbrowse_info['stop'];
-    
-      $jbrowse_html = "
-        </br>   
-        <div>
-          <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
-                  scrolling='yes' src='$jbrowse_url' name='frameviewer'></iframe>
-        </div>";
-    }//JBrowse instance exists
-  }//feature is a gene
+  if ($feature->organism_id->abbreviation == 'glyma') {
+    $gene_name = substr($feature->name, 6);
+    $url = "https://www.soybase.org/gb2/gbrowse/gmax2.0/?q=$gene_name";
+    $jbrowse_html = "
+      If the Soybase.org GBrowse window does not open automatically, click 
+      <a href='$url'>here</a> to see this gene model on the soybean genome.";
   }
-  
+  else {
+    if ($feature->type_id->name == "gene") {
+      // Try to get JBrowse URL from Chado
+      if (!($jbrowse_info = getJBrowseURL($feature_id))) {
+        $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
+      }
+      else {
+        $jbrowse_url = $jbrowse_info['url'] 
+                 . '&loc='
+                 . $jbrowse_info['chr'] . ':'
+                 . $jbrowse_info['start'] . '..'
+                 . $jbrowse_info['stop'];
+    
+        $jbrowse_html = "
+          </br>   
+          <div>
+            <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
+                    scrolling='yes' src='$jbrowse_url' name='frameviewer'></iframe>
+          </div>";
+      }//JBrowse instance exists
+    }//feature is a gene
+  }  
   
   ///////////////////////   PREPARE THE RECORD TABLE   ////////////////////////
   
