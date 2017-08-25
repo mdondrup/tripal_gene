@@ -349,7 +349,7 @@ function getJBrowseURL($gene_id) {
       INNER JOIN {dbxref} x ON x.dbxref_id=fx.dbxref_id
       INNER JOIN {db} ON db.db_id=x.db_id
     WHERE chr.type_id IN (SELECT cvterm_id FROM {cvterm} 
-                          WHERE name IN ('chromosome', 'contig'))
+                          WHERE name IN ('chromosome', 'contig', 'supercontig'))
           AND  LOWER(db.name) LIKE '%jbrowse%'
           AND f.feature_id=$gene_id";
   $result = chado_query($sql);
