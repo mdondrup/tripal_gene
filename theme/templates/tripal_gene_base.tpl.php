@@ -55,17 +55,43 @@
 
   // Get assembly version and gene model build (represented as analysis records)
   $gene_set = 'unknown';
-  $assembly = 'unknown';
   $feature = chado_expand_var($feature, 'table', 'analysisfeature', $options);
   foreach ($feature->analysisfeature as $af) {
     $af = chado_expand_var($af, 'table', 'analysisprop', $options);
     if (is_array($af->analysis_id->analysisprop)) {
       foreach ($af->analysis_id->analysisprop as $ap) {
+        if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
+          $gene_set = $af->analysis_id->name;
+        }
+      }
+    }
+    else {
+      $ap = $af->analysis_id->analysisprop;
+      if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
+        $gene_set = $af->analysis_id->name;
+      }
+    }
+  }
+  $assembly = 'unknown';
+  //echo "<pre>start with ";var_dump($feature); echo"</pre>";
+  //NB: I (adf) would have expected that using the $options (return_array=>1)
+  //here would have given me an array of featureloc, but it instead seemed
+  //to make other things into arrays that I would NOT have expected to 
+  //be arrays. Although I am not too comfortable with the code as it 
+  //stands, it works and I don't envision genes having multiple featurelocs
+  //so probably OK
+  //$feature = chado_expand_var($feature, 'table', 'featureloc', $options);
+  $feature = chado_expand_var($feature, 'table', 'featureloc');
+  //echo "<pre>expanded to ";var_dump($feature); echo"</pre>";
+  //adf: don't ask me why the structure is like so, but it is.
+  $src = $feature->featureloc->feature_id->srcfeature_id;
+  $src = chado_expand_var($src, 'table', 'analysisfeature', $options);
+  foreach ($src->analysisfeature as $af) {
+    $af = chado_expand_var($af, 'table', 'analysisprop', $options);
+    if (is_array($af->analysis_id->analysisprop)) {
+      foreach ($af->analysis_id->analysisprop as $ap) {
         if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
           $assembly = $af->analysis_id->name;
-        }
-        else if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
-          $gene_set = $af->analysis_id->name;
         }
       }
     }
@@ -73,9 +99,6 @@
       $ap = $af->analysis_id->analysisprop;
       if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
         $assembly = $af->analysis_id->name;
-      }
-      else if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
-        $gene_set = $af->analysis_id->name;
       }
     }
   }
