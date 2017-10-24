@@ -34,6 +34,13 @@ function tripal_gene_views_default_views() {
  * @ingroup tripal_gene
  */
 function tripal_gene_defaultvalue_user_genes() {
+
+  // get the urlprefix from name column of chado.db table
+  $urlprefix_query = "select urlprefix from {db} where name = :urlprefix";
+  $urlprefix_args = array(':urlprefix' => 'LegumeInfo_gene_families');
+  $urlprefix_result = chado_query($urlprefix_query, $urlprefix_args);
+  $urlprefix = $urlprefix_result->fetchColumn(0);
+
   $sql_count ="select count(f.feature_id) as count
   from {feature} f left join {cvterm} cvt
   on f.type_id=cvt.cvterm_id
@@ -184,7 +191,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['gene_family']['table'] = 'gene';
     $handler->display->display_options['fields']['gene_family']['field'] = 'gene_family';
     $handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
-    $handler->display->display_options['fields']['gene_family']['alter']['path'] = 'http://legumeinfo.org/chado_gene_phylotree_v2/[uniquename]';
+    $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . '[gene_family]';
     $handler->display->display_options['fields']['gene_family']['alter']['external'] = TRUE;
     /* Field: gene: description */
     $handler->display->display_options['fields']['description']['id'] = 'description';

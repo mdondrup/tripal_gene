@@ -3,11 +3,7 @@
   $feature  = $variables['node']->feature;
   if ($feature->type_id->name != 'gene') return;
 
-
-//TODO: this should be a db record
-  // Get gene family URL prefix from the view.
-  //   Note that the URL takes the gene model name rather than gene family name.
-  $gene_family_url = "/chado_gene_phylotree_v2/"; // default
+  $gene_family_url = ""; // default
   $view = views_get_view('gene');
   foreach ($view->display as $part) {
     if (isset($part->display_options['fields']['gene_family']['alter'])) {
@@ -240,8 +236,7 @@
      $gene_family_html = "<b> not assigned to a gene family</b>";
   }
   else {
-    // Link with uniquename for gene feature (assumes 1 gene family per gene model)
-    $url = $gene_family_url . $feature->uniquename;
+    $url = $gene_family_url . $gene_family;
     $gene_family_html = "<a href='$url'>$gene_family</a>";
   }
 
