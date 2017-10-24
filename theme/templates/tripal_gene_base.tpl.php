@@ -324,10 +324,10 @@
   }
 
 drupal_add_js(
-    path_to_theme() . '/theme/js/interpro-linkout.js',
+  drupal_get_path('module', 'tripal_gene') . '/theme/js/interpro-linkout.js',
     array('type' => 'file', 'group' => JS_DEFAULT)
 );
 drupal_add_js(
-    path_to_theme() . '/theme/js/geneontology-linkout.js',
+    drupal_get_path('module', 'tripal_gene') . '/theme/js/geneontology-linkout.js',
     array('type' => 'file', 'group' => JS_DEFAULT)
 );
