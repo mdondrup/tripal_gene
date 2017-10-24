@@ -201,7 +201,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['domains']['id'] = 'domains';
     $handler->display->display_options['fields']['domains']['table'] = 'gene';
     $handler->display->display_options['fields']['domains']['field'] = 'domains';
-    $handler->display->display_options['fields']['domains']['exclude'] = TRUE;
+    $handler->display->display_options['fields']['domains']['exclude'] = FALSE;
     /* Field: Gene: Bucket */
     $handler->display->display_options['fields']['actions']['id'] = 'actions';
     $handler->display->display_options['fields']['actions']['table'] = 'gene';
