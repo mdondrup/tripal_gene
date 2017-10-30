@@ -193,7 +193,7 @@
   );
 
   // Micro-Synteny-View row
-  $micro_synteny_url = 'https://legumeinfo.org/lis_context_viewer/index.html#/search/lis/' . $feature->name;
+  $micro_synteny_url = 'https://legumeinfo.org/lis_context_viewer/#/search/lis/' . $feature->name;
   $micro_synteny_html = "<a href='$micro_synteny_url'>$feature->name</a>";
   $rows[] = array(
     array(
