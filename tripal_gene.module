@@ -366,3 +366,19 @@ function getJBrowseURL($gene_id) {
             
   return false;
 }
+
+
+
+function gene_description_linkouts($description) {
+  $pattern = '/(GO:\d+)/i';
+  $replacement = '<a href="http://amigo.geneontology.org/amigo/term/${1}">${1}</a>';
+  $description = preg_replace( $pattern , $replacement , $description);
+
+  $pattern = '/(IPR\d+)/i';
+  $replacement = '<a href="http://www.ebi.ac.uk/interpro/entry/${1}">${1}</a>';
+  $description = preg_replace( $pattern , $replacement , $description);
+
+  return $description;
+}
+
+
