@@ -324,11 +324,3 @@
     print $jbrowse_html;
   }
 
-drupal_add_js(
-  drupal_get_path('module', 'tripal_gene') . '/theme/js/interpro-linkout.js',
-    array('type' => 'file', 'group' => JS_DEFAULT)
-);
-drupal_add_js(
-    drupal_get_path('module', 'tripal_gene') . '/theme/js/geneontology-linkout.js',
-    array('type' => 'file', 'group' => JS_DEFAULT)
-);
