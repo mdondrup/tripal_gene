@@ -193,10 +193,12 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
     $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . '[gene_family]';
     $handler->display->display_options['fields']['gene_family']['alter']['external'] = FALSE;
+    $handler->display->display_options['fields']['gene_family']['label'] = 'Gene Family';
     /* Field: gene: description */
     $handler->display->display_options['fields']['description']['id'] = 'description';
     $handler->display->display_options['fields']['description']['table'] = 'gene';
     $handler->display->display_options['fields']['description']['field'] = 'description';
+    $handler->display->display_options['fields']['description']['label'] = 'Description';
     /* Field: gene: Domains */
     $handler->display->display_options['fields']['domains']['id'] = 'domains';
     $handler->display->display_options['fields']['domains']['table'] = 'gene';
