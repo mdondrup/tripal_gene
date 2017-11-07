@@ -381,4 +381,48 @@ function gene_description_linkouts($description) {
   return $description;
 }
 
+function gene_domains_linkouts($domains) {
+  //eg. http://pfam.xfam.org/family/PF12854
+  $pattern = '/(PF\d+)/';
+  $replacement = '<a href="http://pfam.xfam.org/family/${1}">${1}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+  //eg. http://pantherdb.org/panther/family.do?clsAccession=PTHR32125
+  $pattern = array('/(PTHR\d+\s+)/','/(PTHR\d+$)/');
+  $replacement = '<a href="http://pantherdb.org/panther/family.do?clsAccession=${1}">${1}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+  $pattern = '/(PTHR\d+)(:SF\d+)/';
+  $replacement = '<a href="http://pantherdb.org/panther/family.do?clsAccession=${1}">${1}${2}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+  //eg. https://prosite.expasy.org/PS50171
+  $pattern = '/(PS\d+)/';
+  $replacement = '<a href="https://prosite.expasy.org/${1}">${1}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+   //eg. http://smart.embl.de/smart/do_annotation.pl?DOMAIN=SM01050
+  $pattern = '/(SM\d+)/';
+  $replacement = '<a href="http://smart.embl.de/smart/do_annotation.pl?DOMAIN=${1}">${1}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+  //eg. http://supfam.org/SUPERFAMILY/cgi-bin/scop.cgi?sunid=50249
+  $pattern = '/(SSF\d+)/';
+  $replacement = '<a href="http://supfam.org/SUPERFAMILY/cgi-bin/scop.cgi?sunid=${1}">${1}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+  // remove SSF from the search param. there is a better way
+  $domains = preg_replace('/(cgi\?sunid=SSF)/','cgi?sunid=', $domains);
+
+  //eg. http://www.cathdb.info/version/latest/superfamily/1.20.1250.20
+  $pattern = '/(G3DSA:)(\d+\.\d+\.\d+\.\d+)/';
+  $replacement = '<a href="http://www.cathdb.info/version/latest/superfamily/${2}">${1}${2}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+  //eg. http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=TIGR00861
+  $pattern = '/(TIGR)(\d+)/';
+  $replacement = '<a href="http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=${1}${2}">${1}${2}</a>';
+  $domains = preg_replace( $pattern , $replacement , $domains);
+
+  return $domains;
+}
 
