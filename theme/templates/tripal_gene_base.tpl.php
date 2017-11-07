@@ -36,10 +36,10 @@
     $gene_family      = 'unknown';
     if ($row->gene_family != null)
         $gene_family      = $row->gene_family;
-    $gene_description = $row->description;
+    $gene_description = gene_description_linkouts($row->description);
     $genus            = $row->genus;
     $species          = $row->species;
-    $domains          = $row->domains;
+    $domains          = gene_domains_linkouts($row->domains);
   }
   else {
     $gene_family      = 'unknown';
@@ -269,7 +269,6 @@
     ),
     array(
       'data' => $gene_description,
-      'id' => 'gene-description' /* this id is used by the interpro/geneontology linkout */
     )
   );
 
@@ -280,7 +279,9 @@
       'header' => true,
       'width'  => '20%', 
     ),
-    $domain_html,
+    array(
+      'data' => $domains,
+    )
   );
   
   // mRNA(s)
