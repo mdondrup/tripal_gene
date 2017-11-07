@@ -260,7 +260,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['description']['group'] = 1;
     $handler->display->display_options['filters']['description']['exposed'] = TRUE;
     $handler->display->display_options['filters']['description']['expose']['operator_id'] = 'description_op';
-    $handler->display->display_options['filters']['description']['expose']['label'] = 'description';
+    $handler->display->display_options['filters']['description']['expose']['label'] = 'Description';
     $handler->display->display_options['filters']['description']['expose']['description'] = '(e.g. [Contains]: proteasome)';
     $handler->display->display_options['filters']['description']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['description']['expose']['operator'] = 'description_op';
@@ -281,7 +281,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['gene_family']['group'] = 1;
     $handler->display->display_options['filters']['gene_family']['exposed'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator_id'] = 'gene_family_op';
-    $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'gene family';
+    $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'Gene Family';
     $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. [is equal to]: phytozome_10_2.59192412)';
     $handler->display->display_options['filters']['gene_family']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator'] = 'gene_family_op';
@@ -303,7 +303,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['name']['group'] = 1;
     $handler->display->display_options['filters']['name']['exposed'] = TRUE;
     $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-    $handler->display->display_options['filters']['name']['expose']['label'] = 'gene name';
+    $handler->display->display_options['filters']['name']['expose']['label'] = 'Gene Name';
     $handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. [Contains]: Glyma.15G)';
     $handler->display->display_options['filters']['name']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
