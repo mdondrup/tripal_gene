@@ -191,7 +191,19 @@
     ),
     $feature->name
   );
-  
+
+  // Micro-Synteny-View row
+  $micro_synteny_url = 'https://legumeinfo.org/lis_context_viewer/#/search/lis/' . $feature->name;
+  $micro_synteny_html = "<a href='$micro_synteny_url'>$feature->name</a>";
+  $rows[] = array(
+    array(
+      'data' => 'Micro Synteny View',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $micro_synteny_html
+  );
+
   // Organism row
   $organism = $feature->organism_id->genus 
             . " " . $feature->organism_id->species 
