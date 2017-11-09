@@ -191,7 +191,9 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['gene_family']['table'] = 'gene';
     $handler->display->display_options['fields']['gene_family']['field'] = 'gene_family';
     $handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
-    $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . '[gene_family]';
+    // eg https://legumeinfo.org/chado_gene_phylotree_v2?family=phytozome_10_2.59241259&gene_name=aradu.Aradu.002J3
+
+    $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . 'family=' . '[gene_family]' . '&gene_name=' . '[name]';
     $handler->display->display_options['fields']['gene_family']['alter']['external'] = FALSE;
     $handler->display->display_options['fields']['gene_family']['label'] = 'Gene Family';
     /* Field: gene: description */
