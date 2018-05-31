@@ -135,6 +135,7 @@ function tripal_gene_add_domainless_mview(){
                                       AND t.cv_id=cv.cv_id 
                                       AND cv.name='feature_property'
                                )
+          AND noteprop.rank=0
         LEFT JOIN featureprop familyprop 
           ON familyprop.feature_id=gene1.gene_id 
              AND familyprop.type_id=(SELECT cvterm_id FROM cvterm t, cv 
