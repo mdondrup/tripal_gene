@@ -8,13 +8,6 @@
   foreach ($view->display as $part) {
     if (isset($part->display_options['fields']['gene_family']['alter'])) {
       $gene_family_url = $part->display_options['fields']['gene_family']['alter']['path'];
-      $gene_family_url = preg_replace("/\[.*?\]/", '', $gene_family_url);
-
-      // make sure there is a leading /
-      if (!preg_match("/^\//", $gene_family_url) 
-            && !preg_match("/^http/", $gene_family_url)) {
-        $gene_family_url = "/$gene_family_url";
-      }
     }
   }
 
@@ -248,7 +241,9 @@
      $gene_family_html = "<b> not assigned to a gene family</b>";
   }
   else {
-    $url = $gene_family_url . $gene_family;
+    $patterns = array('/\[gene_family\]/','/\[name\]/');
+    $replacements = array( $gene_family, $feature->name);
+    $url = preg_replace( $patterns, $replacements, $gene_family_url);
     $gene_family_html = "<a href='$url'>$gene_family</a>";
   }
 

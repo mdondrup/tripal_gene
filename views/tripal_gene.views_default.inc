@@ -191,7 +191,9 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['gene_family']['table'] = 'gene';
     $handler->display->display_options['fields']['gene_family']['field'] = 'gene_family';
     $handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
-    $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . '[gene_family]';
+    // eg https://legumeinfo.org/chado_gene_phylotree_v2?family=phytozome_10_2.59241259&gene_name=aradu.Aradu.002J3
+
+    $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . 'family=' . '[gene_family]' . '&gene_name=' . '[name]';
     $handler->display->display_options['fields']['gene_family']['alter']['external'] = FALSE;
     $handler->display->display_options['fields']['gene_family']['label'] = 'Gene Family';
     /* Field: gene: description */
@@ -282,7 +284,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['gene_family']['exposed'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator_id'] = 'gene_family_op';
     $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'Gene Family';
-    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. [is equal to]: legfed_v1_0.L_TKB797)';
+    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. [is equal to]: legfed_v1_0.L_2951WH)';
     $handler->display->display_options['filters']['gene_family']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator'] = 'gene_family_op';
     $handler->display->display_options['filters']['gene_family']['expose']['identifier'] = 'gene_family';
