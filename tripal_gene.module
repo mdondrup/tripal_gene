@@ -102,7 +102,7 @@ function tripal_gene_views_api() {
  * tripal_gene_add_all_handler()
  */
 function tripal_gene_add_all_handler($form, &$form_state) {
-  module_load_include('inc', 'lightshop', 'lightshop.pages');
+  module_load_include('inc', 'geneshop', 'geneshop.pages');
 
   $view = views_get_view('gene');
   //in order to get all the results of the view, set items per page to 0
@@ -121,7 +121,7 @@ SQL;
 
     if ($gene) {
       $node = node_load($gene->nid);
-      lightshop_add2basket($node);
+                geneshop_add2basket($node);
     }
   }
   
@@ -205,6 +205,12 @@ function tripal_gene_theme($existing, $type, $theme, $path) {
       'template' => 'tripal_gene_sequence',
       'path' => "$path/theme/templates",
     ),
+    'tripal_gene_rnai' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_gene_rnai',
+      'path' => "$path/theme/templates",
+    ),
+
   );
  
   return $items;

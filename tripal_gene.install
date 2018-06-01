@@ -36,7 +36,7 @@ function tripal_gene_requirements($phase) {
 function tripal_gene_install() {
   $sql_count ="
     SELECT COUNT(f.feature_id) AS count
-    FROM feature f 
+    FROM chado.feature f 
       LEFT JOIN cvterm cvt ON f.type_id=cvt.cvterm_id         
     WHERE cvt.name = :name";                                 
                                            

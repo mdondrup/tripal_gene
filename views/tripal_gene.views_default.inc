@@ -65,6 +65,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['style_plugin'] = 'table';
     $handler->display->display_options['style_options']['columns'] = array(
       'name' => 'name',
+      'uniquename' => 'uniquename',
       'abbreviation' => 'abbreviation',
       'coordinate' => 'coordinate',
       'start' => 'start',
@@ -75,6 +76,13 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['style_options']['default'] = 'name';
     $handler->display->display_options['style_options']['info'] = array(
       'name' => array(
+        'sortable' => 1,
+        'default_sort_order' => 'asc',
+        'align' => '',
+        'separator' => '',
+        'empty_column' => 0,
+      ),
+      'uniquename' => array(
         'sortable' => 1,
         'default_sort_order' => 'asc',
         'align' => '',
@@ -142,7 +150,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['uniquename']['id'] = 'uniquename';
     $handler->display->display_options['fields']['uniquename']['table'] = 'gene';
     $handler->display->display_options['fields']['uniquename']['field'] = 'uniquename';
-    $handler->display->display_options['fields']['uniquename']['exclude'] = TRUE;
+    // $handler->display->display_options['fields']['uniquename']['exclude'] = FALSE;
     /* Field: gene: Genus */
     $handler->display->display_options['fields']['genus']['id'] = 'genus';
     $handler->display->display_options['fields']['genus']['table'] = 'gene';
@@ -186,6 +194,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
     $handler->display->display_options['fields']['gene_family']['alter']['path'] = 'http://legumeinfo.org/chado_gene_phylotree_v2/[uniquename]';
     $handler->display->display_options['fields']['gene_family']['alter']['external'] = TRUE;
+        $handler->display->display_options['fields']['gene_family']['exclude'] = TRUE;
     /* Field: gene: description */
     $handler->display->display_options['fields']['description']['id'] = 'description';
     $handler->display->display_options['fields']['description']['table'] = 'gene';
