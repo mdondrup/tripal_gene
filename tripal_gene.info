@@ -10,8 +10,8 @@ dependencies[] = tripal_views
 dependencies[] = tripal_organism
 dependencies[] = tripal_cv
 dependencies[] = tripal_db
-dependencies[] = gene:x
-shop
+dependencies[] = geneshop
+
 
 stylesheets[all][] = theme/css/tripal_gene.css
 
