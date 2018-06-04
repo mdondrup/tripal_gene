@@ -34,6 +34,13 @@ function tripal_gene_views_default_views() {
  * @ingroup tripal_gene
  */
 function tripal_gene_defaultvalue_user_genes() {
+
+  // get the urlprefix from name column of chado.db table
+  $urlprefix_query = "select urlprefix from {db} where name = :urlprefix";
+  $urlprefix_args = array(':urlprefix' => 'LegumeInfo_gene_families');
+  $urlprefix_result = chado_query($urlprefix_query, $urlprefix_args);
+  $urlprefix = $urlprefix_result->fetchColumn(0);
+
   $sql_count ="select count(f.feature_id) as count
   from {feature} f left join {cvterm} cvt
   on f.type_id=cvt.cvterm_id
@@ -192,18 +199,19 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['fields']['gene_family']['table'] = 'gene';
     $handler->display->display_options['fields']['gene_family']['field'] = 'gene_family';
     $handler->display->display_options['fields']['gene_family']['alter']['make_link'] = TRUE;
-    $handler->display->display_options['fields']['gene_family']['alter']['path'] = 'http://legumeinfo.org/chado_gene_phylotree_v2/[uniquename]';
-    $handler->display->display_options['fields']['gene_family']['alter']['external'] = TRUE;
-        $handler->display->display_options['fields']['gene_family']['exclude'] = TRUE;
+    $handler->display->display_options['fields']['gene_family']['alter']['path'] =  $urlprefix . 'family=' . '[gene_family]' . '&gene_name=' . '[name]';
+    $handler->display->display_options['fields']['gene_family']['alter']['external'] = FALSE;
+    $handler->display->display_options['fields']['gene_family']['label'] = 'Gene Family';
     /* Field: gene: description */
     $handler->display->display_options['fields']['description']['id'] = 'description';
     $handler->display->display_options['fields']['description']['table'] = 'gene';
     $handler->display->display_options['fields']['description']['field'] = 'description';
+    $handler->display->display_options['fields']['description']['label'] = 'Description';
     /* Field: gene: Domains */
     $handler->display->display_options['fields']['domains']['id'] = 'domains';
     $handler->display->display_options['fields']['domains']['table'] = 'gene';
     $handler->display->display_options['fields']['domains']['field'] = 'domains';
-    $handler->display->display_options['fields']['domains']['exclude'] = TRUE;
+    $handler->display->display_options['fields']['domains']['exclude'] = FALSE;
     /* Field: Gene: Bucket */
     $handler->display->display_options['fields']['actions']['id'] = 'actions';
     $handler->display->display_options['fields']['actions']['table'] = 'gene';
@@ -260,7 +268,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['description']['group'] = 1;
     $handler->display->display_options['filters']['description']['exposed'] = TRUE;
     $handler->display->display_options['filters']['description']['expose']['operator_id'] = 'description_op';
-    $handler->display->display_options['filters']['description']['expose']['label'] = 'description';
+    $handler->display->display_options['filters']['description']['expose']['label'] = 'Description';
     $handler->display->display_options['filters']['description']['expose']['description'] = '(e.g. [Contains]: proteasome)';
     $handler->display->display_options['filters']['description']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['description']['expose']['operator'] = 'description_op';
@@ -281,8 +289,8 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['gene_family']['group'] = 1;
     $handler->display->display_options['filters']['gene_family']['exposed'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator_id'] = 'gene_family_op';
-    $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'gene family';
-    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. [is equal to]: phytozome_10_2.59192412)';
+    $handler->display->display_options['filters']['gene_family']['expose']['label'] = 'Gene Family';
+    $handler->display->display_options['filters']['gene_family']['expose']['description'] = '(e.g. [is equal to]: legfed_v1_0.L_2951WH)';
     $handler->display->display_options['filters']['gene_family']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['gene_family']['expose']['operator'] = 'gene_family_op';
     $handler->display->display_options['filters']['gene_family']['expose']['identifier'] = 'gene_family';
@@ -303,7 +311,7 @@ function tripal_gene_defaultvalue_user_genes() {
     $handler->display->display_options['filters']['name']['group'] = 1;
     $handler->display->display_options['filters']['name']['exposed'] = TRUE;
     $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
-    $handler->display->display_options['filters']['name']['expose']['label'] = 'gene name';
+    $handler->display->display_options['filters']['name']['expose']['label'] = 'Gene Name';
     $handler->display->display_options['filters']['name']['expose']['description'] = '(e.g. [Contains]: Glyma.15G)';
     $handler->display->display_options['filters']['name']['expose']['use_operator'] = TRUE;
     $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';

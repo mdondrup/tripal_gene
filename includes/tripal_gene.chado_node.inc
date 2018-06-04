@@ -21,7 +21,13 @@ function tripal_gene_node_view($node, $view_mode, $langcode) {
           '#markup' => theme('tripal_gene_rnai', array('node' => $node)),
           '#tripal_toc_id'    => 'Sequences',
           '#tripal_toc_title' => 'Sequences',
-          '#weight' => -100,
+          '#weight' => -90,
+        );
+        $node->content['tripal_gene_expression'] = array(
+          '#markup' => theme('tripal_gene_expression', array('node' => $node)),
+          '#tripal_toc_id'    => 'Expression',
+          '#tripal_toc_title' => 'Expression',
+          '#weight' => -80,
         );
    */  
         $node->content['tripal_gene_rnai'] = array(

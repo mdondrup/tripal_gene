@@ -20,37 +20,26 @@ function file2arr($file) {
 
   return $arr;
 }//file2arr()
+  // Remove this pane if feature type is not a gene
+  $feature  = $variables['node']->feature;
+  if ($feature->type_id->name != 'gene') return;
 
-// eksc hack: a desparate move to remove this pane if feature type is not a gene
-$feature  = $variables['node']->feature;
-if ($feature->type_id->name != 'gene') return
-
-  // Get gene family URL prefix from the view.
-  //   Note that the URL takes the gene model name rather than gene family name.
-  $gene_family_url = "/chado_gene_phylotree_v2/"; // default
+  $gene_family_url = ""; // default
   $view = views_get_view('gene');
   foreach ($view->display as $part) {
     if (isset($part->display_options['fields']['gene_family']['alter'])) {
       $gene_family_url = $part->display_options['fields']['gene_family']['alter']['path'];
-      $gene_family_url = preg_replace("/\[.*?\]/", '', $gene_family_url);
-
-      // make sure there is a leading /
-      if (!preg_match("/^\//", $gene_family_url) 
-            && !preg_match("/^http/", $gene_family_url)) {
-        $gene_family_url = "/$gene_family_url";
-      }
     }
   }
 
   drupal_add_css($my_path . '/theme/css/basket.css');
 
+  // So that chado variables are returned in an array
+  $options = array('return_array' => 1);
+
   $feature  = $variables['node']->feature;  
   $feature_id = $feature->feature_id;
 //echo "<pre>";var_dump($feature);echo "</pre>";
-
-  // Always want to expand joins as arrays regardless of how many matches
-  //   there are
-  $table_options = array('return_array' => true);
 
   // Get the overview record for this gene model
   $sql = "
@@ -58,37 +47,84 @@ if ($feature->type_id->name != 'gene') return
     WHERE uniquename = '".$feature->uniquename."'";
   if ($res = chado_query($sql, array())) {
     $row = $res->fetchObject();
-    
-    $gene_family      = $row->gene_family;
-    $gene_description = $row->description;
+    $gene_family      = 'unknown';
+    if ($row->gene_family != null)
+        $gene_family      = $row->gene_family;
+    $gene_description = gene_description_linkouts($row->description);
     $genus            = $row->genus;
     $species          = $row->species;
+    $domains          = gene_domains_linkouts($row->domains);
   }
   else {
     $gene_family      = 'unknown';
     $gene_description = 'None given.';
     $genus            = 'unknown';
     $species          = 'unknown';
+    $domains          = 'unknown';
   }
 
-  // Get gene model build (represented as an analysis record)
-  $feature = chado_expand_var($feature, 'table', 'analysisfeature', $table_options);
-  $analysis = $feature->analysisfeature[0]->analysis_id;
-  $gene_model_build = $analysis->name;
+  // Get assembly version and gene model build (represented as analysis records)
+  $gene_set = 'unknown';
+  $feature = chado_expand_var($feature, 'table', 'analysisfeature', $options);
+  foreach ($feature->analysisfeature as $af) {
+    $af = chado_expand_var($af, 'table', 'analysisprop', $options);
+    if (is_array($af->analysis_id->analysisprop)) {
+      foreach ($af->analysis_id->analysisprop as $ap) {
+        if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
+          $gene_set = $af->analysis_id->name;
+        }
+      }
+    }
+    else {
+      $ap = $af->analysis_id->analysisprop;
+      if ($ap->type_id->name == 'analysis_type' && $ap->value == 'gene model set') {
+        $gene_set = $af->analysis_id->name;
+      }
+    }
+  }
+  $assembly = 'unknown';
+  //echo "<pre>start with ";var_dump($feature); echo"</pre>";
+  //NB: I (adf) would have expected that using the $options (return_array=>1)
+  //here would have given me an array of featureloc, but it instead seemed
+  //to make other things into arrays that I would NOT have expected to 
+  //be arrays. Although I am not too comfortable with the code as it 
+  //stands, it works and I don't envision genes having multiple featurelocs
+  //so probably OK
+  //$feature = chado_expand_var($feature, 'table', 'featureloc', $options);
+  $feature = chado_expand_var($feature, 'table', 'featureloc');
+  //echo "<pre>expanded to ";var_dump($feature); echo"</pre>";
+  //adf: don't ask me why the structure is like so, but it is.
+  $src = $feature->featureloc->feature_id->srcfeature_id;
+  $src = chado_expand_var($src, 'table', 'analysisfeature', $options);
+  foreach ($src->analysisfeature as $af) {
+    $af = chado_expand_var($af, 'table', 'analysisprop', $options);
+    if (is_array($af->analysis_id->analysisprop)) {
+      foreach ($af->analysis_id->analysisprop as $ap) {
+        if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
+          $assembly = $af->analysis_id->name;
+        }
+      }
+    }
+    else {
+      $ap = $af->analysis_id->analysisprop;
+      if ($ap->type_id->name == 'analysis_type' && $ap->value == 'genome assembly') {
+        $assembly = $af->analysis_id->name;
+      }
+    }
+  }
 
   // Get properties
   $properties = array();
-  $feature = chado_expand_var($feature, 'table', 'featureprop', $table_options);
+  $feature = chado_expand_var($feature, 'table', 'featureprop', $options);
   $props = $feature->featureprop;
   foreach ($props as $prop){
     $prop = chado_expand_var($prop, 'field', 'featureprop.value');
     $properties[$prop->type_id->name] = $prop->value;
   }
-//echo "<pre>";var_dump($properties);echo "</pre>";
 
   // Expand relationships
   $mRNAs = array();
-  $feature = chado_expand_var($feature, 'table', 'feature_relationship', $table_options);
+  $feature = chado_expand_var($feature, 'table', 'feature_relationship', $options);
   $related = $feature->feature_relationship->object_id;
   foreach ($related as $relative) {
     if ($relative->subject_id->type_id->name == 'mRNA') {
@@ -96,105 +132,54 @@ if ($feature->type_id->name != 'gene') return
     }
   }
   ksort($mRNAs);
-//echo "<pre>";var_dump($mRNAs);echo "</pre>";
+  
+  // Created linked domain names
+  $doms = explode(' ', $domains);
+  $links = array();
+  foreach ($doms as $d) {
+//eksc- not clear how these links should be formed. Some work this way, some don't.
+//      do the protein domain features need to be synced?
+//   $links[] = "<a href='/feature/consensus/consensus/polypeptide_domain/$d'>$d</a>";
+//for now, just do this:
+    $links[] = $d;
+  }
+  $domain_html = implode(', ', $links);
   
   
-  ///////////////////////   SET UP JBROWSE SECTION   ////////////////////////
-  
+  ///////////////////////   SET UP JBROWSE   ////////////////////////
+
   $jbrowse_html = '';
   
-  // These files link identifiers in Chado to identifers in JBrowse
-  $aliasdir    = 'files/aliasfiles/';
-  $data_file   = $aliasdir . 'data_alias.tab';
-  $tracks_file = $aliasdir . 'tracks_alias.tab';
-  $chr_file    = $aliasdir . 'chr_alias.tab';
-  
-  // convert alias files to associative arrays:
-  $data_arr   = file2arr($data_file);
-  $tracks_arr = file2arr($tracks_file);
-  $chr_arr    = file2arr($chr_file);
-
-  $key = $feature->organism_id->abbreviation;
-
-  // $data_arr maps the genus and species abbreviation to the dataset name:
-  $data   = $data_arr[$key];
-  
-  // $tracks_arr maps the genus and species abbreviation to the gene model
-  //   track name:
-  $tracks = $tracks_arr[$key];
-  
-  $feature = chado_expand_var($feature, 'table', featureloc, $table_options);
-  $srcfeatures =  $feature->featureloc->feature_id;
-  
-  while (list(, $srcf) = each($srcfeatures)) {
-    // only interested in srcfeature of type 'chromosome'
-//echo "<pre>";var_dump($srcf);echo "</pre>";
-    if ($srcf->srcfeature_id->type_id->name == 'chromosome') {
-      $chrname = $srcf->srcfeature_id->name;
-      $chrlen  = $srcf->srcfeature_id->seqlen;
-      $start   = $srcf->fmin;
-      $end     = $srcf->fmax;
-      break;
-    } 
-    else {
-      continue;
-    }
-  }
-//echo "key=$key, data=$data, chrname=$chrname, chrlen=$chrlen, start=$start, end=$end, tracks=$tracks<br>";
-
-  if (!$chrname || !$chrlen || !$start || !$end) {
-    // Can't create JBrowse object
-    $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
+  // Temporary hack: don't show if organism is glyma
+  if ($feature->organism_id->abbreviation == 'glyma') {
+    $gene_name = substr($feature->name, 6);
+    $url = "https://www.soybase.org/gb2/gbrowse/gmax2.0/?q=$gene_name";
+    $jbrowse_html = "
+      If the Soybase.org GBrowse window does not open automatically, click 
+      <a href='$url'>here</a> to see this gene model on the soybean genome.";
   }
   else {
-    // the LIS chr name is mapped to its jbrowse equivalent 
-    $chr = $chr_arr[$chrname];
-    
-    // expand the region by 2k:
-    $start = (($start- 2000) < 0) ? 0 : $start = $start- 2000;
-    $end = (($end + 2000) > $chrlen) ? $chrlen : $end + 2000;
-    $loc = $chr.":".$start."..".$end;
-
-    if (($feature->type_id->name == "gene") && $data && $loc && $tracks) {
-      if ($key ==  "glyma") {   #peu
-        // Glycine max JBrowse instance is at Soybase.org
-        $url_source = $data;
-        $qry_params = "?start=%s;stop=%s;ref=%s;";
-        $url_source = sprintf($url_source.$qry_params, $start, $end, $chr);
-        $jbrowse_html = "
-          <div>
-            <br>
-            If the Soybase.org GBrowse window does not open automatically, click 
-            <a href='$url_source' target=_blank>here</a> to see this gene model
-            on the soybean genome.
-          </div>
-          <br>
-          <script language='javascript'>
-            var re = new RegExp('jbrowse');
-            if (window.location.href.match(re)) {
-              window.onload = function() { window.open('$url_source'); }
-            }
-          </script>";
-      }//Glycine max
+    if ($feature->type_id->name == "gene") {
+      // Try to get JBrowse URL from Chado
+      if (!($jbrowse_info = getJBrowseURL($feature_id))) {
+        $jbrowse_html = 'No browser instance available to display a graphic for this gene.';
+      }
       else {
-        $url_source = $data;    
-	if (preg_match("/gbrowse_img/", $url_source)) {
-		$qry_params = "&q=%s&tracks=%s";
-	}
-	else {
-		$qry_params = "&loc=%s&tracks=%s";
-	}
-        $url_source = sprintf($url_source.$qry_params, $loc, $tracks);
+        $jbrowse_url = $jbrowse_info['url'] 
+                 . '&loc='
+                 . $jbrowse_info['chr'] . ':'
+                 . $jbrowse_info['start'] . '..'
+                 . $jbrowse_info['stop'];
+    
         $jbrowse_html = "
           </br>   
           <div>
             <iframe id='frameviewer' frameborder='0' width='100%' height='1000' 
-                    scrolling='yes' src='$url_source' name='frameviewer'></iframe>
+                    scrolling='yes' src='$jbrowse_url' name='frameviewer'></iframe>
           </div>";
-      }
-    }
-  }//JBrowse instance exists
-
+      }//JBrowse instance exists
+    }//feature is a gene
+  }  
   
   ///////////////////////   PREPARE THE RECORD TABLE   ////////////////////////
   
@@ -220,7 +205,19 @@ if ($feature->type_id->name != 'gene') return
     ),
     $feature->name
   );
-  
+
+  // Micro-Synteny-View row
+  $micro_synteny_url = 'https://legumeinfo.org/lis_context_viewer/#/search/lis/' . $feature->name;
+  $micro_synteny_html = "<a href='$micro_synteny_url'>$feature->name</a>";
+  $rows[] = array(
+    array(
+      'data' => 'Micro Synteny View',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $micro_synteny_html
+  );
+
   // Organism row
   $organism = $feature->organism_id->genus 
             . " " . $feature->organism_id->species 
@@ -240,37 +237,37 @@ if ($feature->type_id->name != 'gene') return
     $organism
   );
 
-/*TODO: uncomment when build analysis record is associated with gene models
-  // Build (analysis)
+  // Assembly version
+  $rows[] = array(
+    array(
+      'data' => 'Assembly version',
+      'header' => TRUE,
+    ),
+    $assembly
+  );
+  
+  // Gene models set
   $rows[] = array(
     array(
       'data' => 'Gene Model Build',
       'header' => TRUE,
       'width' => '20%',
     ),
-    $gene_model_build
-  );
-*/
-  
-  // Description row
-  $rows[] = array(
-    array(
-      'data' => 'Description',
-      'header' => TRUE,
-      'width' => '20%',
-    ),
-    $gene_description
+    $gene_set
   );
   
   // Gene family rows
+ 
   if ($gene_family == 'unknown') {
-    $gene_family_html = "<i>unknown</i>";
+     $gene_family_html = "<b> not assigned to a gene family</b>";
   }
   else {
-    // Link with uniquename for gene feature (assumes 1 gene family per gene model)
-    $url = $gene_family_url . $feature->uniquename;
+    $patterns = array('/\[gene_family\]/','/\[name\]/');
+    $replacements = array( $gene_family, $feature->name);
+    $url = preg_replace( $patterns, $replacements, $gene_family_url);
     $gene_family_html = "<a href='$url'>$gene_family</a>";
   }
+
   $rows[] = array(
     array(
       'data' => 'Gene Family',
@@ -279,24 +276,45 @@ if ($feature->type_id->name != 'gene') return
     ),
     $gene_family_html
   );
-  
-/* don't know if this is useful; may be only confusing
-  // Gene family representative
-  $gene_family_representive = $properties['family representative'];
-  $rows[] = array(
+   //tagged terms only if they exists.
+  if($ans !=null)
+  {
+   $rows[] = array(
     array(
-      'data' => 'Gene Family Representative',
+      'data' => 'Tagged terms',
       'header' => TRUE,
       'width' => '20%',
     ),
-    $gene_family_representive
+    $ans
   );
-*/
+}
+  // Description row
+  $rows[] = array(
+    array(
+      'data' => 'Description',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    array(
+      'data' => $gene_description,
+    )
+  );
 
+  // Protein domains
+  $rows[] = array(
+    array(
+      'data'   => 'Protein domains',
+      'header' => true,
+      'width'  => '20%', 
+    ),
+    array(
+      'data' => $domains,
+    )
+  );
+  
   // mRNA(s)
   $mRNA_html = '';
   foreach (array_keys($mRNAs) as $mRNA_name) {
-//    $url = "feature/$genus/$species/mRNA/" . $mRNAs[$mRNA_name];
     $url = "?pane=Sequences#$mRNA_name";
     $mRNA_html .= "<a href='$url'>$mRNA_name</a><br>";
   }
@@ -308,7 +326,6 @@ if ($feature->type_id->name != 'gene') return
     ),
     $mRNA_html
   );
-  
   
   // the $table array contains the headers and rows array as well as other
   // options for controlling the display of the table.  Additional
@@ -334,3 +351,4 @@ if ($feature->type_id->name != 'gene') return
   if ($jbrowse_html) {
     print $jbrowse_html;
   }
+
