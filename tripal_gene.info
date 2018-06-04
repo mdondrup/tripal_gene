@@ -1,10 +1,10 @@
 name = Tripal Gene
-description = Supports the gene_search table of Chado by providing pages for viewing and searching of genes. 
+description = Supports the gene_search table of Chado by providing pages for viewing and searching of genes. Adds RNAi pane to chado features. 
 core = 7.x
 package = Tripal Extensions
 configure = admin/tripal/chado/tripal_gene
 
-version = 7.x-2.0-rc1
+version = 7.x-2.0-licebase1
 dependencies[] = tripal_core
 dependencies[] = tripal_views
 dependencies[] = tripal_organism
