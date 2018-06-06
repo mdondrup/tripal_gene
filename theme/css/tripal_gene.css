@@ -1,3 +1,15 @@
+
+.field-name-field-as, .field-name-field-ss {
+    word-wrap: break-word;
+    max-width: 60em;
+    max-height: 10em;
+    display: inline-block;
+    overflow: auto;
+    font-family: monaco, courier new, courier, monospace;
+    font-size: 90%;
+    padding: 1em;
+}
+
 #edit-domains {
   width: 200px;
 }
