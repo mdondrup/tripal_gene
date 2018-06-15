@@ -76,13 +76,15 @@ function tripal_gene_form_alter(&$form, &$form_state, $form_id) {
       unset($form['body']);
       break;
     case 'views_exposed_form':
-      if ($form['#id'] == 'views-exposed-form-gene-page') {
+    /**  
+    if ($form['#id'] == 'views-exposed-form-gene-page') {
         // Add a button
         $form['submit_basket']['#type'] = 'submit';
-        $form['submit_basket']['#value'] = t('Add all genes to Basket');
+        // $form['submit_basket']['#value'] = t('Add all genes to Basket'); // Disable because it caused an error
         $form['submit_basket']['#submit'] = array('tripal_gene_add_all_handler', 'views_exposed_form_submit');
         $form['submit_basket']['#executes_submit_callback'] = 1;
       }
+    */
       break;
   } //switch
 }
@@ -305,7 +307,7 @@ function getAllRelated($term) {
   // Get similar terms
   $child_obo_terms = array();
   
-  $obo_terms = ontology_search_setSimilarTerms($term, $search_ontologies, false); 
+//  $obo_terms = ontology_search_setSimilarTerms($term, $search_ontologies, false); 
   if ($obo_terms) {
     foreach (array_keys($obo_terms) as $cvterm_id) {
       //drupal_set_message("am i 0");
