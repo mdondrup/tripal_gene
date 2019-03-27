@@ -305,7 +305,7 @@ function getAllRelated($term) {
   // Get similar terms
   $child_obo_terms = array();
   
-  $obo_terms = ontology_search_setSimilarTerms($term, $search_ontologies, false); 
+  //$obo_terms = ontology_search_setSimilarTerms($term, $search_ontologies, false); 
   if ($obo_terms) {
     foreach (array_keys($obo_terms) as $cvterm_id) {
       //drupal_set_message("am i 0");
